@@ -5,7 +5,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtCore import QThread, pyqtSignal, QTimer, QObject
 import sys
-import picoscope_main_gui_1508
+import picoscope_main_gui_101022
 from colorama import Fore, Style
 
 
@@ -115,7 +115,7 @@ def StopPSScope(stauts,chandle):
     # assert_pico_ok(status["close"])
 
 
-class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_1508.Ui_MainWindow):
+class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
 
 
 
@@ -321,21 +321,29 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_1508.Ui_MainWindow):
         ''' Channel A change '''
         self.ChannelACouplingComboBox.currentTextChanged.connect(self.ChannelAUpdate)
         self.ChannelAOffsetSpinBox.valueChanged.connect(self.ChannelAUpdate)
+        self.ChARangeBox.currentTextChanged.connect(self.ChannelAUpdate)
 
 
         ''' Channel B change '''
         self.ChannelBCouplingComboBox.currentTextChanged.connect(self.ChannelBUpdate)
         self.ChannelBOffsetSpinBox.valueChanged.connect(self.ChannelBUpdate)
+        self.ChBRangeBox.currentTextChanged.connect(self.ChannelBUpdate)
 
 
         ''' Channel C change '''
         self.ChannelCCouplingComboBox.currentTextChanged.connect(self.ChannelCUpdate)
         self.ChannelCOffsetSpinBox.valueChanged.connect(self.ChannelCUpdate)
+        self.ChCRangeBox.currentTextChanged.connect(self.ChannelCUpdate)
 
 
         ''' Channel D change '''
         self.ChannelDCouplingComboBox.currentTextChanged.connect(self.ChannelDUpdate)
         self.ChannelDOffsetSpinBox.valueChanged.connect(self.ChannelDUpdate)
+        self.ChDRangeBox.currentTextChanged.connect(self.ChannelDUpdate)
+
+        ''' Channel voltage ranges '''
+        self.ChannelVoltageRanges = ['PS5000A_10MV','PS5000A_20MV','PS5000A_50MV','PS5000A_100MV','PS5000A_200MV','PS5000A_500MV','PS5000A_1V',
+                                     'PS5000A_2V','PS5000A_5V','PS5000A_10V','PS5000A_20V','PS5000A_50V','PS5000A_MAX_RANGES']
 
 
 
@@ -360,6 +368,8 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_1508.Ui_MainWindow):
         ''' Binning start button'''
 
         self.StartBinningButton.clicked.connect(self.BinAvgButton)
+
+
 
      def StartMeasurementButtonFunction(self):
         if self.MeasurementState == 'Off':
@@ -572,7 +582,9 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_1508.Ui_MainWindow):
              if self.ChACoupling == 'AC': self.coupling_type = ps.PS5000A_COUPLING["PS5000A_AC"]
              elif self.ChACoupling == 'DC': self.coupling_type = ps.PS5000A_COUPLING["PS5000A_DC"]
 
-             self.chRange = ps.PS5000A_RANGE["PS5000A_10V"]
+
+             self.rangeIndex = self.ChARangeBox.currentIndex()
+             self.chRange = ps.PS5000A_RANGE[self.ChannelVoltageRanges[self.rangeIndex]]
              self.ChannelAOffsetValue  = self.ChannelAOffsetSpinBox.value()
 
              print(chandle, self.channel, 1, self.ChACoupling, self.chRange, 0)
@@ -593,7 +605,8 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_1508.Ui_MainWindow):
              if self.ChBCoupling == 'AC': self.coupling_type = ps.PS5000A_COUPLING["PS5000A_AC"]
              elif self.ChBCoupling == 'DC': self.coupling_type = ps.PS5000A_COUPLING["PS5000A_DC"]
 
-             self.chRange = ps.PS5000A_RANGE["PS5000A_10V"]
+             self.rangeIndex = self.ChBRangeBox.currentIndex()
+             self.chRange = ps.PS5000A_RANGE[self.ChannelVoltageRanges[self.rangeIndex]]
              self.ChannelBOffsetValue  = self.ChannelBOffsetSpinBox.value()
 
              print(chandle, self.channel, 1, self.ChBCoupling, self.chRange, 0)
@@ -615,7 +628,8 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_1508.Ui_MainWindow):
              if self.ChCCoupling == 'AC': self.coupling_type = ps.PS5000A_COUPLING["PS5000A_AC"]
              elif self.ChCCoupling == 'DC': self.coupling_type = ps.PS5000A_COUPLING["PS5000A_DC"]
 
-             self.chRange = ps.PS5000A_RANGE["PS5000A_10V"]
+             self.rangeIndex = self.ChCRangeBox.currentIndex()
+             self.chRange = ps.PS5000A_RANGE[self.ChannelVoltageRanges[self.rangeIndex]]
              self.ChannelCOffsetValue  = self.ChannelCOffsetSpinBox.value()
              if self.ChannelAState == 'On':
                  status["setChC"] = ps.ps5000aSetChannel(chandle, self.channel, 1,self.coupling_type, self.chRange, 0)
@@ -635,7 +649,8 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_1508.Ui_MainWindow):
              if self.ChDCoupling == 'AC': self.coupling_type = ps.PS5000A_COUPLING["PS5000A_AC"]
              elif self.ChDCoupling == 'DC': self.coupling_type = ps.PS5000A_COUPLING["PS5000A_DC"]
 
-             self.chRange = ps.PS5000A_RANGE["PS5000A_10V"]
+             self.rangeIndex = self.ChDRangeBox.currentIndex()
+             self.chRange = ps.PS5000A_RANGE[self.ChannelVoltageRanges[self.rangeIndex]]
              self.ChannelDOffsetValue  = self.ChannelDOffsetSpinBox.value()
              if self.ChannelDState == 'On':
                  status["setChD"] = ps.ps5000aSetChannel(chandle, self.channel, 1, self.coupling_type, self.chRange, 0)
@@ -718,25 +733,25 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_1508.Ui_MainWindow):
 
 
              if self.ScanGateState1!='Off':
-                 self.ScanGateAvgData1.append(self.ScanGateData(self.data, self.ScanRegion1, self.ScanGateState1))
+                 self.ScanGateAvgData1.append(self.ScanGateData(self.data, self.ScanRegion1, self.ScanGateCheckBoxState1))
 
              if self.ScanGateState2!='Off':
-                 self.ScanGateAvgData2.append(self.ScanGateData(self.data, self.ScanRegion2, self.ScanGateState2))
+                 self.ScanGateAvgData2.append(self.ScanGateData(self.data, self.ScanRegion2, self.ScanGateCheckBoxState2))
 
              if self.ScanGateState3!='Off':
-                 self.ScanGateAvgData3.append(self.ScanGateData(self.data, self.ScanRegion3, self.ScanGateState3))
+                 self.ScanGateAvgData3.append(self.ScanGateData(self.data, self.ScanRegion3, self.ScanGateCheckBoxState3))
 
              if self.ScanGateState4!='Off':
-                 self.ScanGateAvgData4.append(self.ScanGateData(self.data, self.ScanRegion4, self.ScanGateState4))
+                 self.ScanGateAvgData4.append(self.ScanGateData(self.data, self.ScanRegion4, self.ScanGateCheckBoxState4))
 
              if self.ScanGateState5!='Off':
-                 self.ScanGateAvgData5.append(self.ScanGateData(self.data, self.ScanRegion5, self.ScanGateState5))
+                 self.ScanGateAvgData5.append(self.ScanGateData(self.data, self.ScanRegion5, self.ScanGateCheckBoxState5))
 
              if self.ScanGateState6!='Off':
-                 self.ScanGateAvgData6.append(self.ScanGateData(self.data, self.ScanRegion6, self.ScanGateState6))
+                 self.ScanGateAvgData6.append(self.ScanGateData(self.data, self.ScanRegion6, self.ScanGateCheckBoxState6))
 
              if self.ScanGateState7!='Off':
-                 self.ScanGateAvgData7.append(self.ScanGateData(self.data, self.ScanRegion7, self.ScanGateState7))
+                 self.ScanGateAvgData7.append(self.ScanGateData(self.data, self.ScanRegion7, self.ScanGateCheckBoxState7))
 
              self.psScanCount+=1
              # print(self.psScanCount,self.ScanNAvg)
@@ -749,57 +764,57 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_1508.Ui_MainWindow):
                  self.psScanPlot2.clear()
 
                  self.ScanGateAvgDataTotN.append(len(self.ScanGateAvgDataTotN)+1)
-                 self.pws = 2
                  if self.ScanGateState1!='Off':
                      self.ScanGateAvgDataTot1.append(np.mean(self.ScanGateAvgData1))
                      self.ScanGateAvgDataTotError1.append(np.std(self.ScanGateAvgData1))
                      # print(self.ScanGateAvgDataTotError1)
-                     self.psScanPlot2.plot(self.ScanGateAvgDataTotN,self.ScanGateAvgDataTot1,style = 'o', pen= ( pg.mkPen(color=self.ScanColors1[0], width=self.pws)))
-                     self.ScanErrorbar1 = pg.ErrorBarItem(x = np.array(self.ScanGateAvgDataTotN), y= np.array(self.ScanGateAvgDataTot1), top = np.array(self.ScanGateAvgDataTotError1), bottom =np.array(self.ScanGateAvgDataTotError1),  pen= ( pg.mkPen(color=self.ScanColors1[0], width=self.pws)))
+                     self.psScanPlot2.plot(self.ScanGateAvgDataTotN,self.ScanGateAvgDataTot1,pen=self.ScanColors1[0],style = 'o')
+                     self.ScanErrorbar1 = pg.ErrorBarItem(x = np.array(self.ScanGateAvgDataTotN), y= np.array(self.ScanGateAvgDataTot1), top = np.array(self.ScanGateAvgDataTotError1), bottom =np.array(self.ScanGateAvgDataTotError1),  pen=self.ScanColors1[0])
                      self.psScanPlot2.addItem( self.ScanErrorbar1)
+                     print(self.ScanGateCheckBoxState1)
 
                  if self.ScanGateState2!='Off':
                      self.ScanGateAvgDataTot2.append(np.mean(self.ScanGateAvgData2))
-                     self.ScanGateAvgDataTotError2.append(np.mean(self.ScanGateAvgData2))
-                     self.psScanPlot2.plot(self.ScanGateAvgDataTotN,self.ScanGateAvgDataTot2, pen= ( pg.mkPen(color=self.ScanColors1[1], width=self.pws)))
-                     self.ScanErrorbar2 = pg.ErrorBarItem(x = np.array(self.ScanGateAvgDataTotN), y= np.array(self.ScanGateAvgDataTot2), top = np.array(self.ScanGateAvgDataTotError2), bottom =np.array(self.ScanGateAvgDataTotError2),   pen= ( pg.mkPen(color=self.ScanColors1[1], width=self.pws)))
+                     self.ScanGateAvgDataTotError2.append(np.std(self.ScanGateAvgData2))
+                     self.psScanPlot2.plot(self.ScanGateAvgDataTotN,self.ScanGateAvgDataTot2,pen=self.ScanColors1[1])
+                     self.ScanErrorbar2 = pg.ErrorBarItem(x = np.array(self.ScanGateAvgDataTotN), y= np.array(self.ScanGateAvgDataTot2), top = np.array(self.ScanGateAvgDataTotError2), bottom =np.array(self.ScanGateAvgDataTotError2),  pen=self.ScanColors1[1])
                      self.psScanPlot2.addItem( self.ScanErrorbar2)
 
 
                  if self.ScanGateState3!='Off':
                      self.ScanGateAvgDataTot3.append(np.mean(self.ScanGateAvgData3))
-                     self.ScanGateAvgDataTotError3.append(np.mean(self.ScanGateAvgData3))
-                     self.psScanPlot2.plot(self.ScanGateAvgDataTotN,self.ScanGateAvgDataTot3, pen= ( pg.mkPen(color=self.ScanColors1[2], width=self.pws)))
-                     self.ScanErrorbar3 = pg.ErrorBarItem(x = np.array(self.ScanGateAvgDataTotN), y= np.array(self.ScanGateAvgDataTot3), top = np.array(self.ScanGateAvgDataTotError3), bottom =np.array(self.ScanGateAvgDataTotError3),    pen= ( pg.mkPen(color=self.ScanColors1[2], width=self.pws)))
+                     self.ScanGateAvgDataTotError3.append(np.std(self.ScanGateAvgData3))
+                     self.psScanPlot2.plot(self.ScanGateAvgDataTotN,self.ScanGateAvgDataTot3,pen=self.ScanColors1[2])
+                     self.ScanErrorbar3 = pg.ErrorBarItem(x = np.array(self.ScanGateAvgDataTotN), y= np.array(self.ScanGateAvgDataTot3), top = np.array(self.ScanGateAvgDataTotError3), bottom =np.array(self.ScanGateAvgDataTotError3),  pen=self.ScanColors1[2])
                      self.psScanPlot2.addItem( self.ScanErrorbar3)
 
                  if self.ScanGateState4!='Off':
                      self.ScanGateAvgDataTot4.append(np.mean(self.ScanGateAvgData4))
-                     self.ScanGateAvgDataTotError4.append(np.mean(self.ScanGateAvgData4))
-                     self.psScanPlot2.plot(self.ScanGateAvgDataTotN,self.ScanGateAvgDataTot4, pen= ( pg.mkPen(color=self.ScanColors1[3], width=self.pws)))
-                     self.ScanErrorbar4 = pg.ErrorBarItem(x = np.array(self.ScanGateAvgDataTotN), y= np.array(self.ScanGateAvgDataTot4), top = np.array(self.ScanGateAvgDataTotError4), bottom =np.array(self.ScanGateAvgDataTotError4),    pen= ( pg.mkPen(color=self.ScanColors1[3], width=self.pws)))
+                     self.ScanGateAvgDataTotError4.append(np.std(self.ScanGateAvgData4))
+                     self.psScanPlot2.plot(self.ScanGateAvgDataTotN,self.ScanGateAvgDataTot4,pen=self.ScanColors1[3])
+                     self.ScanErrorbar4 = pg.ErrorBarItem(x = np.array(self.ScanGateAvgDataTotN), y= np.array(self.ScanGateAvgDataTot4), top = np.array(self.ScanGateAvgDataTotError4), bottom =np.array(self.ScanGateAvgDataTotError4),  pen=self.ScanColors1[3])
                      self.psScanPlot2.addItem( self.ScanErrorbar4)
 
                  if self.ScanGateState5!='Off':
                      self.ScanGateAvgDataTot5.append(np.mean(self.ScanGateAvgData5))
-                     self.ScanGateAvgDataTotError5.append(np.mean(self.ScanGateAvgData5))
-                     self.psScanPlot2.plot(self.ScanGateAvgDataTotN,self.ScanGateAvgDataTot5, pen= ( pg.mkPen(color=self.ScanColors1[4], width=self.pws)))
-                     self.ScanErrorbar5 = pg.ErrorBarItem(x = np.array(self.ScanGateAvgDataTotN), y= np.array(self.ScanGateAvgDataTot5), top = np.array(self.ScanGateAvgDataTotError5), bottom =np.array(self.ScanGateAvgDataTotError5),    pen= ( pg.mkPen(color=self.ScanColors1[4], width=self.pws)))
+                     self.ScanGateAvgDataTotError5.append(np.std(self.ScanGateAvgData5))
+                     self.psScanPlot2.plot(self.ScanGateAvgDataTotN,self.ScanGateAvgDataTot5,pen=self.ScanColors1[4])
+                     self.ScanErrorbar5 = pg.ErrorBarItem(x = np.array(self.ScanGateAvgDataTotN), y= np.array(self.ScanGateAvgDataTot5), top = np.array(self.ScanGateAvgDataTotError5), bottom =np.array(self.ScanGateAvgDataTotError5),  pen=self.ScanColors1[4])
                      self.psScanPlot2.addItem( self.ScanErrorbar5)
 
 
                  if self.ScanGateState6!='Off':
                      self.ScanGateAvgDataTot6.append(np.mean(self.ScanGateAvgData6))
-                     self.ScanGateAvgDataTotError6.append(np.mean(self.ScanGateAvgData6))
-                     self.psScanPlot2.plot(self.ScanGateAvgDataTotN,self.ScanGateAvgDataTot6, pen= ( pg.mkPen(color=self.ScanColors1[5], width=self.pws)))
-                     self.ScanErrorbar6 = pg.ErrorBarItem(x = np.array(self.ScanGateAvgDataTotN), y= np.array(self.ScanGateAvgDataTot6), top = np.array(self.ScanGateAvgDataTotError6), bottom =np.array(self.ScanGateAvgDataTotError6),   pen= ( pg.mkPen(color=self.ScanColors1[5], width=self.pws)))
+                     self.ScanGateAvgDataTotError6.append(np.std(self.ScanGateAvgData6))
+                     self.psScanPlot2.plot(self.ScanGateAvgDataTotN,self.ScanGateAvgDataTot6,pen=self.ScanColors1[5])
+                     self.ScanErrorbar6 = pg.ErrorBarItem(x = np.array(self.ScanGateAvgDataTotN), y= np.array(self.ScanGateAvgDataTot6), top = np.array(self.ScanGateAvgDataTotError6), bottom =np.array(self.ScanGateAvgDataTotError6),  pen=self.ScanColors1[5])
                      self.psScanPlot2.addItem( self.ScanErrorbar6)
 
                  if self.ScanGateState7!='Off':
                      self.ScanGateAvgDataTot7.append(np.mean(self.ScanGateAvgData7))
-                     self.ScanGateAvgDataTotError7.append(np.mean(self.ScanGateAvgData7))
-                     self.psScanPlot2.plot(self.ScanGateAvgDataTotN,self.ScanGateAvgDataTot7, pen= ( pg.mkPen(color=self.ScanColors1[6], width=self.pws)))
-                     self.ScanErrorbar7 = pg.ErrorBarItem(x = np.array(self.ScanGateAvgDataTotN), y= np.array(self.ScanGateAvgDataTot7), top = np.array(self.ScanGateAvgDataTotError7), bottom =np.array(self.ScanGateAvgDataTotError7),    pen= ( pg.mkPen(color=self.ScanColors1[6], width=self.pws)))
+                     self.ScanGateAvgDataTotError7.append(np.std(self.ScanGateAvgData7))
+                     self.psScanPlot2.plot(self.ScanGateAvgDataTotN,self.ScanGateAvgDataTot7,pen=self.ScanColors1[6])
+                     self.ScanErrorbar7 = pg.ErrorBarItem(x = np.array(self.ScanGateAvgDataTotN), y= np.array(self.ScanGateAvgDataTot7), top = np.array(self.ScanGateAvgDataTotError7), bottom =np.array(self.ScanGateAvgDataTotError7),  pen=self.ScanColors1[6])
                      self.psScanPlot2.addItem( self.ScanErrorbar7)
 
 
@@ -919,31 +934,38 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_1508.Ui_MainWindow):
                 self.ScanGateAvgDataTotN = []
 
                 if self.ScanGatecheckBox1.isChecked() == True:
-                    self.ScanGateState1 = self.ScanGatecomboBox1.currentIndex()
+                    self.ScanGateCheckBoxState1 = self.ScanGatecomboBox1.currentIndex()
+                    self.ScanGateState1 = 'On'
                     self.ScanGateAvgDataTot1 = []
                     self.ScanGateAvgDataTotError1 = []
                 if self.ScanGatecheckBox2.isChecked() == True:
-                    self.ScanGateState2 = self.ScanGatecomboBox2.currentIndex()
+                    self.ScanGateCheckBoxState2 = self.ScanGatecomboBox2.currentIndex()
+                    self.ScanGateState2 = 'On'
                     self.ScanGateAvgDataTot2 = []
                     self.ScanGateAvgDataTotError2 = []
                 if self.ScanGatecheckBox3.isChecked() == True:
-                    self.ScanGateState3 = self.ScanGatecomboBox3.currentIndex()
+                    self.ScanGateCheckBoxState3 = self.ScanGatecomboBox3.currentIndex()
+                    self.ScanGateState3 = 'On'
                     self.ScanGateAvgDataTot3 = []
                     self.ScanGateAvgDataTotError3 = []
                 if self.ScanGatecheckBox4.isChecked() == True:
-                    self.ScanGateState4 = self.ScanGatecomboBox4.currentIndex()
+                    self.ScanGateCheckBoxState4 = self.ScanGatecomboBox4.currentIndex()
+                    self.ScanGateState4 = 'On'
                     self.ScanGateAvgDataTot4 = []
                     self.ScanGateAvgDataTotError4 = []
                 if self.ScanGatecheckBox5.isChecked() == True:
-                    self.ScanGateState5 = self.ScanGatecomboBox5.currentIndex()
+                    self.ScanGateCheckBoxState5 = self.ScanGatecomboBox5.currentIndex()
+                    self.ScanGateState5 = 'On'
                     self.ScanGateAvgDataTot5 = []
                     self.ScanGateAvgDataTotError5 = []
                 if self.ScanGatecheckBox6.isChecked() == True:
-                    self.ScanGateState6 = self.ScanGatecomboBox6.currentIndex()
+                    self.ScanGateCheckBoxState6 = self.ScanGatecomboBox6.currentIndex()
+                    self.ScanGateState6 = 'On'
                     self.ScanGateAvgDataTot6 = []
                     self.ScanGateAvgDataTotError6 = []
                 if self.ScanGatecheckBox7.isChecked() == True:
-                    self.ScanGateState7 = self.ScanGatecomboBox7.currentIndex()
+                    self.ScanGateCheckBoxState7 = self.ScanGatecomboBox7.currentIndex()
+                    self.ScanGateState7 = 'On'
                     self.ScanGateAvgDataTot7 = []
                     self.ScanGateAvgDataTotError7 = []
 
@@ -1044,7 +1066,7 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_1508.Ui_MainWindow):
              self.ScanGatecomboBox6.addItem('Ch D')
              self.ScanGatecomboBox7.addItem('Ch D')
 
-     def ScanGateData(self, data, ScanRegion, ScanGateState1):
+     def ScanGateData(self, data, ScanRegion, ScanGateCheckBoxState):
 
          gate = ScanRegion.getRegion()
 
@@ -1054,7 +1076,7 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_1508.Ui_MainWindow):
          idx_up = np.searchsorted(data[0,:],gate[1])
 
          # return np.sum(data[ScanGateState1+1,idx_down:idx_up])/np.sum(data[0,idx_down:idx_up])
-         return np.sum(data[ScanGateState1+1,idx_down:idx_up])/(idx_up-idx_down)
+         return np.sum(data[ScanGateCheckBoxState+1,idx_down:idx_up])/(idx_up-idx_down)
 
 
 
@@ -1104,10 +1126,10 @@ class psMeasureThread1(QObject):
 
 
      def LoopFunc(self):
-         self.data = np.zeros((2,1000))
-         self.data[0,:] = np.linspace(0,2*np.pi,1000)
-         self.data[1,:] = np.sin(10*self.data[0,:]+np.random.uniform(0,2*np.pi))
-         #time.sleep(0.0005)
+         # self.data = np.zeros((2,1000))
+         # self.data[0,:] = np.linspace(0,2*np.pi,1000)
+         # self.data[1,:] = np.sin(10*self.data[0,:]+np.random.uniform(0,2*np.pi))
+         #time.sleep(0.05)
          # self.data_for_transfer.emit(self.data)
 
          self.NTotSamples = 100000
@@ -1210,4 +1232,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-#
+#    
