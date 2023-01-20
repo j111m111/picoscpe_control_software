@@ -105,6 +105,31 @@ def StartPSScope():
     return status, chandle
 
 
+
+    def SetupScope(resolution, ):
+
+        res =ps.PS5000A_DEVICE_RESOLUTION[resolution]
+        status["openunit"] = ps.ps5000aOpenUnit(ctypes.byref(chandle), None, resolution)
+
+
+
+            try:
+                assert_pico_ok(status["openunit"])
+            except: # PicoNotOkError:
+
+                powerStatus = status["openunit"]
+
+                if powerStatus == 286:
+                    status["changePowerSource"] = ps.ps5000aChangePowerSource(chandle, powerStatus)
+                elif powerStatus == 282:
+                    status["changePowerSource"] = ps.ps5000aChangePowerSource(chandle, powerStatus)
+                else:0==0
+                    # raise
+
+        return
+
+
+
 def StopPSScope(stauts,chandle):
     status["stop"] = ps.ps5000aStop(chandle)
     # assert_pico_ok(status["stop"])
@@ -129,9 +154,7 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
 
 
         ''' Initialize sampling value'''
-        self.TimingSampleNumberSpinBox.setRange(0,1000000)
-        self.TimingSampleNumberSpinBox.setValue(5000)
-        self.psSamplingNumber  = self.TimingSampleNumberSpinBox.value()
+        self.psSamplingNumber  = 5000
 
 
 
@@ -368,6 +391,10 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
         ''' Binning start button'''
 
         self.StartBinningButton.clicked.connect(self.BinAvgButton)
+
+
+
+
 
 
 
@@ -707,6 +734,15 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
          if  self.ChannelBState == 'On':
              self.psDataPlot.plot(data[0,:],data[2,:]+ float(self.ChannelBOffsetValue),pen=(255,0,0))
              self.psScanPlot1.plot(data[0,:],data[2,:]+ float(self.ChannelBOffsetValue),pen=(255,0,0))
+
+         if  self.ChannelCState == 'On':
+             self.psDataPlot.plot(data[0,:],data[3,:]+ float(self.ChannelBOffsetValue),pen=(0,255,0))
+             self.psScanPlot1.plot(data[0,:],data[3,:]+ float(self.ChannelBOffsetValue),pen=(0,255,0))
+
+         if  self.ChannelDState == 'On':
+             self.psDataPlot.plot(data[0,:],data[4,:]+ float(self.ChannelBOffsetValue),pen=(0,0,0))
+             self.psScanPlot1.plot(data[0,:],data[4,:]+ float(self.ChannelBOffsetValue),pen=(0,0,0))
+
          # self.label.setPos(QtCore.QPointF(-0, 0.))
          # self.label.setText('sdfasdfasdfasdfasdfadfasd')
          self.label = pg.TextItem('x = ' + str(round(self.mpoint_x/1e6,5)) +' \u03BCs, y = ' + str(round(self.mpoint_y,2)) + 'mV', anchor = (0,0))

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1395</width>
-    <height>710</height>
+    <width>1514</width>
+    <height>831</height>
    </rect>
   </property>
   <property name="font">
@@ -251,7 +251,7 @@
                  <number>10000</number>
                 </property>
                 <property name="singleStep">
-                 <number>10</number>
+                 <number>5</number>
                 </property>
                </widget>
               </item>
@@ -805,12 +805,12 @@
                   </property>
                   <item>
                    <property name="text">
-                    <string>AC</string>
+                    <string>DC</string>
                    </property>
                   </item>
                   <item>
                    <property name="text">
-                    <string>DC</string>
+                    <string>AC</string>
                    </property>
                   </item>
                  </widget>
@@ -846,6 +846,12 @@
                 </item>
                 <item>
                  <widget class="QComboBox" name="ChARangeBox">
+                  <property name="editable">
+                   <bool>false</bool>
+                  </property>
+                  <property name="currentText">
+                   <string>10 mV</string>
+                  </property>
                   <item>
                    <property name="text">
                     <string>10 mV</string>
@@ -1023,12 +1029,12 @@
                   </property>
                   <item>
                    <property name="text">
-                    <string>AC</string>
+                    <string>DC</string>
                    </property>
                   </item>
                   <item>
                    <property name="text">
-                    <string>DC</string>
+                    <string>AC</string>
                    </property>
                   </item>
                  </widget>
@@ -1064,6 +1070,9 @@
                 </item>
                 <item>
                  <widget class="QComboBox" name="ChBRangeBox">
+                  <property name="currentText">
+                   <string>10 mV</string>
+                  </property>
                   <item>
                    <property name="text">
                     <string>10 mV</string>
@@ -1290,12 +1299,12 @@
                   </property>
                   <item>
                    <property name="text">
-                    <string>AC</string>
+                    <string>DC</string>
                    </property>
                   </item>
                   <item>
                    <property name="text">
-                    <string>DC</string>
+                    <string>AC</string>
                    </property>
                   </item>
                  </widget>
@@ -1331,6 +1340,9 @@
                 </item>
                 <item>
                  <widget class="QComboBox" name="ChCRangeBox">
+                  <property name="currentText">
+                   <string>10 mV</string>
+                  </property>
                   <item>
                    <property name="text">
                     <string>10 mV</string>
@@ -1529,12 +1541,12 @@
                   </property>
                   <item>
                    <property name="text">
-                    <string>AC</string>
+                    <string>DC</string>
                    </property>
                   </item>
                   <item>
                    <property name="text">
-                    <string>DC</string>
+                    <string>AC</string>
                    </property>
                   </item>
                  </widget>
@@ -1570,6 +1582,9 @@
                 </item>
                 <item>
                  <widget class="QComboBox" name="ChDRangeBox">
+                  <property name="currentText">
+                   <string>10 mV</string>
+                  </property>
                   <item>
                    <property name="text">
                     <string>10 mV</string>
@@ -2017,13 +2032,6 @@
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="label_8">
-             <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sampling nr.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-            </widget>
-           </item>
-           <item>
             <widget class="QLabel" name="label_5">
              <property name="text">
               <string>Bits</string>
@@ -2075,21 +2083,10 @@
             </widget>
            </item>
            <item>
-            <widget class="QSpinBox" name="TimingSampleNumberSpinBox">
-             <property name="font">
-              <font>
-               <pointsize>12</pointsize>
-               <weight>50</weight>
-               <bold>false</bold>
-              </font>
-             </property>
-             <property name="maximum">
-              <number>0</number>
-             </property>
-            </widget>
-           </item>
-           <item>
             <widget class="QComboBox" name="comboBox">
+             <property name="currentText">
+              <string>8</string>
+             </property>
              <item>
               <property name="text">
                <string>8</string>
