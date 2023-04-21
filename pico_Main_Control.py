@@ -63,7 +63,7 @@ def StartPSScope():
             # raise
 
             # assert_pico_ok(status["changePowerSource"])
-    if status["openunit"] == 0:
+    if status["openunit"] == 0 or 282 or 286:
         # Set up channel A
         # handle = chandle
         channel = ps.PS5000A_CHANNEL["PS5000A_CHANNEL_A"]
@@ -106,27 +106,8 @@ def StartPSScope():
 
 
 
-    def SetupScope(resolution, ):
-
-        res =ps.PS5000A_DEVICE_RESOLUTION[resolution]
-        status["openunit"] = ps.ps5000aOpenUnit(ctypes.byref(chandle), None, resolution)
 
 
-
-            try:
-                assert_pico_ok(status["openunit"])
-            except: # PicoNotOkError:
-
-                powerStatus = status["openunit"]
-
-                if powerStatus == 286:
-                    status["changePowerSource"] = ps.ps5000aChangePowerSource(chandle, powerStatus)
-                elif powerStatus == 282:
-                    status["changePowerSource"] = ps.ps5000aChangePowerSource(chandle, powerStatus)
-                else:0==0
-                    # raise
-
-        return
 
 
 
@@ -139,6 +120,18 @@ def StopPSScope(stauts,chandle):
     status["close"]=ps.ps5000aCloseUnit(chandle)
     # assert_pico_ok(status["close"])
 
+
+
+    
+def TimeBaseCalc(resolution,samp_interval):
+    
+    if samp_interval<16e-9: timebase = 4
+    if resolution  == 0 or 2 or 3:
+        timebase = np.ceil(samp_interval*125000000)+2
+    elif resolution  == 1 or 5:
+        timebase = np.ceil(samp_interval*62500000)+3                  
+    return int(timebase)    
+                           
 
 class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
 
@@ -395,7 +388,44 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
 
 
 
+        ''' Scan plot '''
+        self.scp_w = 3
 
+
+
+
+
+     def SetupScope(self, chandle, resolution, timebase, NTotSamples, preTriggerSamples,postTriggerSamples,TriggerMode,TriggerSlope,TriggerChannel):
+
+        res =ps.PS5000A_DEVICE_RESOLUTION[resolution]
+        status["resolution"] = ps.ps5000aSetDeviceResolution(chandle,resolution)
+        # status["openunit"] = ps.ps5000aOpenUnit(ctypes.byref(chandle), None, resolution)
+
+
+
+        # try:
+        #         assert_pico_ok(status["openunit"])
+        # except: # PicoNotOkError:
+
+        #         powerStatus = status["openunit"]
+
+        #         if powerStatus == 286:
+        #             status["changePowerSource"] = ps.ps5000aChangePowerSource(chandle, powerStatus)
+        #         elif powerStatus == 282:
+        #             status["changePowerSource"] = ps.ps5000aChangePowerSource(chandle, powerStatus)
+        #         else:0==0
+        #             # raise
+
+
+        self.ChannelAUpdate(self)
+        self.ChannelBUpdate(self)
+        self.ChannelCUpdate(self)
+        self.ChannelDUpdate(self)
+        
+        self.TriggerSetup(self)
+        
+        self.timebase = TimeBaseCalc(self.resolution,self.samp_interval)
+        return
 
 
      def StartMeasurementButtonFunction(self):
@@ -805,53 +835,60 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
                      self.ScanGateAvgDataTotError1.append(np.std(self.ScanGateAvgData1))
                      # print(self.ScanGateAvgDataTotError1)
                      self.psScanPlot2.plot(self.ScanGateAvgDataTotN,self.ScanGateAvgDataTot1,pen=self.ScanColors1[0],style = 'o')
-                     self.ScanErrorbar1 = pg.ErrorBarItem(x = np.array(self.ScanGateAvgDataTotN), y= np.array(self.ScanGateAvgDataTot1), top = np.array(self.ScanGateAvgDataTotError1), bottom =np.array(self.ScanGateAvgDataTotError1),  pen=self.ScanColors1[0])
+                     self.ScanErrorbar1 = pg.ErrorBarItem(x = np.array(self.ScanGateAvgDataTotN), y= np.array(self.ScanGateAvgDataTot1), top = np.array(self.ScanGateAvgDataTotError1), bottom =np.array(self.ScanGateAvgDataTotError1),  pen=pg.mkPen(self.ScanColors1[0]))
                      self.psScanPlot2.addItem( self.ScanErrorbar1)
-                     print(self.ScanGateCheckBoxState1)
+                     self.psScanPlot2.plot(x = np.array(self.ScanGateAvgDataTotN), y= np.array(self.ScanGateAvgDataTot1),  pen=pg.mkPen(self.ScanColors1[0],width = self.scp_w))
+                     # print(self.ScanGateCheckBoxState1)
 
                  if self.ScanGateState2!='Off':
                      self.ScanGateAvgDataTot2.append(np.mean(self.ScanGateAvgData2))
                      self.ScanGateAvgDataTotError2.append(np.std(self.ScanGateAvgData2))
                      self.psScanPlot2.plot(self.ScanGateAvgDataTotN,self.ScanGateAvgDataTot2,pen=self.ScanColors1[1])
-                     self.ScanErrorbar2 = pg.ErrorBarItem(x = np.array(self.ScanGateAvgDataTotN), y= np.array(self.ScanGateAvgDataTot2), top = np.array(self.ScanGateAvgDataTotError2), bottom =np.array(self.ScanGateAvgDataTotError2),  pen=self.ScanColors1[1])
+                     self.ScanErrorbar2 = pg.ErrorBarItem(x = np.array(self.ScanGateAvgDataTotN), y= np.array(self.ScanGateAvgDataTot2), top = np.array(self.ScanGateAvgDataTotError2), bottom =np.array(self.ScanGateAvgDataTotError2), pen=pg.mkPen(self.ScanColors1[1]))
                      self.psScanPlot2.addItem( self.ScanErrorbar2)
+                     self.psScanPlot2.plot(x = np.array(self.ScanGateAvgDataTotN), y= np.array(self.ScanGateAvgDataTot2),  pen=pg.mkPen(self.ScanColors1[1],width = self.scp_w))
 
 
                  if self.ScanGateState3!='Off':
                      self.ScanGateAvgDataTot3.append(np.mean(self.ScanGateAvgData3))
                      self.ScanGateAvgDataTotError3.append(np.std(self.ScanGateAvgData3))
                      self.psScanPlot2.plot(self.ScanGateAvgDataTotN,self.ScanGateAvgDataTot3,pen=self.ScanColors1[2])
-                     self.ScanErrorbar3 = pg.ErrorBarItem(x = np.array(self.ScanGateAvgDataTotN), y= np.array(self.ScanGateAvgDataTot3), top = np.array(self.ScanGateAvgDataTotError3), bottom =np.array(self.ScanGateAvgDataTotError3),  pen=self.ScanColors1[2])
+                     self.ScanErrorbar3 = pg.ErrorBarItem(x = np.array(self.ScanGateAvgDataTotN), y= np.array(self.ScanGateAvgDataTot3), top = np.array(self.ScanGateAvgDataTotError3), bottom =np.array(self.ScanGateAvgDataTotError3),  pen=pg.mkPen(self.ScanColors1[2]))
                      self.psScanPlot2.addItem( self.ScanErrorbar3)
+                     self.psScanPlot2.plot(x = np.array(self.ScanGateAvgDataTotN), y= np.array(self.ScanGateAvgDataTot3),  pen=pg.mkPen(self.ScanColors1[2],width = self.scp_w))
 
                  if self.ScanGateState4!='Off':
                      self.ScanGateAvgDataTot4.append(np.mean(self.ScanGateAvgData4))
                      self.ScanGateAvgDataTotError4.append(np.std(self.ScanGateAvgData4))
                      self.psScanPlot2.plot(self.ScanGateAvgDataTotN,self.ScanGateAvgDataTot4,pen=self.ScanColors1[3])
-                     self.ScanErrorbar4 = pg.ErrorBarItem(x = np.array(self.ScanGateAvgDataTotN), y= np.array(self.ScanGateAvgDataTot4), top = np.array(self.ScanGateAvgDataTotError4), bottom =np.array(self.ScanGateAvgDataTotError4),  pen=self.ScanColors1[3])
+                     self.ScanErrorbar4 = pg.ErrorBarItem(x = np.array(self.ScanGateAvgDataTotN), y= np.array(self.ScanGateAvgDataTot4), top = np.array(self.ScanGateAvgDataTotError4), bottom =np.array(self.ScanGateAvgDataTotError4),  pen=pg.mkPen(self.ScanColors1[3]))
                      self.psScanPlot2.addItem( self.ScanErrorbar4)
+                     self.psScanPlot2.plot(x = np.array(self.ScanGateAvgDataTotN), y= np.array(self.ScanGateAvgDataTot4),  pen=pg.mkPen(self.ScanColors1[3],width = self.scp_w))
 
                  if self.ScanGateState5!='Off':
                      self.ScanGateAvgDataTot5.append(np.mean(self.ScanGateAvgData5))
                      self.ScanGateAvgDataTotError5.append(np.std(self.ScanGateAvgData5))
                      self.psScanPlot2.plot(self.ScanGateAvgDataTotN,self.ScanGateAvgDataTot5,pen=self.ScanColors1[4])
-                     self.ScanErrorbar5 = pg.ErrorBarItem(x = np.array(self.ScanGateAvgDataTotN), y= np.array(self.ScanGateAvgDataTot5), top = np.array(self.ScanGateAvgDataTotError5), bottom =np.array(self.ScanGateAvgDataTotError5),  pen=self.ScanColors1[4])
+                     self.ScanErrorbar5 = pg.ErrorBarItem(x = np.array(self.ScanGateAvgDataTotN), y= np.array(self.ScanGateAvgDataTot5), top = np.array(self.ScanGateAvgDataTotError5), bottom =np.array(self.ScanGateAvgDataTotError5), pen=pg.mkPen(self.ScanColors1[4]))
                      self.psScanPlot2.addItem( self.ScanErrorbar5)
+                     self.psScanPlot2.plot(x = np.array(self.ScanGateAvgDataTotN), y= np.array(self.ScanGateAvgDataTot5),  pen=pg.mkPen(self.ScanColors1[4],width = self.scp_w))
 
 
                  if self.ScanGateState6!='Off':
                      self.ScanGateAvgDataTot6.append(np.mean(self.ScanGateAvgData6))
                      self.ScanGateAvgDataTotError6.append(np.std(self.ScanGateAvgData6))
                      self.psScanPlot2.plot(self.ScanGateAvgDataTotN,self.ScanGateAvgDataTot6,pen=self.ScanColors1[5])
-                     self.ScanErrorbar6 = pg.ErrorBarItem(x = np.array(self.ScanGateAvgDataTotN), y= np.array(self.ScanGateAvgDataTot6), top = np.array(self.ScanGateAvgDataTotError6), bottom =np.array(self.ScanGateAvgDataTotError6),  pen=self.ScanColors1[5])
+                     self.ScanErrorbar6 = pg.ErrorBarItem(x = np.array(self.ScanGateAvgDataTotN), y= np.array(self.ScanGateAvgDataTot6), top = np.array(self.ScanGateAvgDataTotError6), bottom =np.array(self.ScanGateAvgDataTotError6), pen=pg.mkPen(self.ScanColors1[5]))
                      self.psScanPlot2.addItem( self.ScanErrorbar6)
+                     self.psScanPlot2.plot(x = np.array(self.ScanGateAvgDataTotN), y= np.array(self.ScanGateAvgDataTot6),  pen=pg.mkPen(self.ScanColors1[5],width = self.scp_w))
 
                  if self.ScanGateState7!='Off':
                      self.ScanGateAvgDataTot7.append(np.mean(self.ScanGateAvgData7))
                      self.ScanGateAvgDataTotError7.append(np.std(self.ScanGateAvgData7))
                      self.psScanPlot2.plot(self.ScanGateAvgDataTotN,self.ScanGateAvgDataTot7,pen=self.ScanColors1[6])
-                     self.ScanErrorbar7 = pg.ErrorBarItem(x = np.array(self.ScanGateAvgDataTotN), y= np.array(self.ScanGateAvgDataTot7), top = np.array(self.ScanGateAvgDataTotError7), bottom =np.array(self.ScanGateAvgDataTotError7),  pen=self.ScanColors1[6])
+                     self.ScanErrorbar7 = pg.ErrorBarItem(x = np.array(self.ScanGateAvgDataTotN), y= np.array(self.ScanGateAvgDataTot7), top = np.array(self.ScanGateAvgDataTotError7), bottom =np.array(self.ScanGateAvgDataTotError7), pen=pg.mkPen(self.ScanColors1[6]))
                      self.psScanPlot2.addItem( self.ScanErrorbar7)
+                     self.psScanPlot2.plot(x = np.array(self.ScanGateAvgDataTotN), y= np.array(self.ScanGateAvgDataTot7),  pen=pg.mkPen(self.ScanColors1[6],width = self.scp_w))
 
 
          if self.BinAvgState == 'On':
