@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1514</width>
-    <height>831</height>
+    <width>1512</width>
+    <height>824</height>
    </rect>
   </property>
   <property name="font">
@@ -2027,22 +2027,22 @@
              </property>
              <item>
               <property name="text">
-               <string>ns/div</string>
+               <string>ns</string>
               </property>
              </item>
              <item>
               <property name="text">
-               <string>μs/div</string>
+               <string>μs</string>
               </property>
              </item>
              <item>
               <property name="text">
-               <string>ms/div</string>
+               <string>ms</string>
               </property>
              </item>
              <item>
               <property name="text">
-               <string>s/div</string>
+               <string>s</string>
               </property>
              </item>
             </widget>
@@ -2119,6 +2119,15 @@
              <property name="toolTip">
               <string>Time between two divisons</string>
              </property>
+             <property name="maximum">
+              <number>1000000000</number>
+             </property>
+             <property name="singleStep">
+              <number>10</number>
+             </property>
+             <property name="value">
+              <number>500</number>
+             </property>
             </widget>
            </item>
            <item>
@@ -2142,7 +2151,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QComboBox" name="comboBox">
+            <widget class="QComboBox" name="ResolutionComboBox">
              <property name="currentText">
               <string>8</string>
              </property>
@@ -2168,6 +2177,19 @@
              </item>
             </widget>
            </item>
+           <item>
+            <widget class="QSpinBox" name="SampleSizeSpinBox">
+             <property name="maximum">
+              <number>1000000</number>
+             </property>
+             <property name="singleStep">
+              <number>1000</number>
+             </property>
+             <property name="value">
+              <number>5000</number>
+             </property>
+            </widget>
+           </item>
           </layout>
          </item>
          <item row="0" column="0">
@@ -2188,7 +2210,7 @@
               <string>Time between two divisons</string>
              </property>
              <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Time/division&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sample interval&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
             </widget>
            </item>
@@ -2216,6 +2238,13 @@
              </property>
             </widget>
            </item>
+           <item>
+            <widget class="QLabel" name="label_30">
+             <property name="text">
+              <string>Nr. Samples</string>
+             </property>
+            </widget>
+           </item>
           </layout>
          </item>
          <item row="2" column="0">
@@ -2226,12 +2255,21 @@
           </widget>
          </item>
          <item row="2" column="1" colspan="2">
-          <widget class="QScrollBar" name="horizontalScrollBar">
+          <widget class="QScrollBar" name="PrePostHorizontalScrollBar">
            <property name="minimumSize">
             <size>
              <width>50</width>
              <height>0</height>
             </size>
+           </property>
+           <property name="minimum">
+            <number>1</number>
+           </property>
+           <property name="maximum">
+            <number>100</number>
+           </property>
+           <property name="value">
+            <number>50</number>
            </property>
            <property name="orientation">
             <enum>Qt::Horizontal</enum>

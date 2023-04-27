@@ -123,14 +123,14 @@ def StopPSScope(stauts,chandle):
 
 
     
-def TimeBaseCalc(resolution,samp_interval):
+# def TimeBaseCalc(resolution,samp_interval):
     
-    if samp_interval<16e-9: timebase = 4
-    if resolution  == 0 or 2 or 3:
-        timebase = np.ceil(samp_interval*125000000)+2
-    elif resolution  == 1 or 5:
-        timebase = np.ceil(samp_interval*62500000)+3                  
-    return int(timebase)    
+#     if samp_interval<16e-9: timebase = 4
+#     if resolution  == 0 or 2 or 3:
+#         timebase = np.ceil(samp_interval*125000000)+2
+#     elif resolution  == 1 or 5:
+#         timebase = np.ceil(samp_interval*62500000)+3                  
+#     return int(timebase)    
                            
 
 class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
@@ -284,6 +284,14 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
         self.TimingDivisionComboBoxValue = self.TimingTimeDivisionComboBox.currentText()
         self.TimingOffset = self.TimingTimeOffsetSpinBox.value()
         self.TimingOffsetComboBoxValue = self.TimingTimeOffsetComboBox.currentText()
+        self.DeviceResolution = self.ResolutionComboBox.currentText()
+        self.NTotSamples = self.SampleSizeSpinBox.value()
+        self.PrePostScale = self.PrePostHorizontalScrollBar.value()
+        self.preTriggerSamples = math.floor(self.NTotSamples*self.PrePostScale/100)
+        self.postTriggerSamples = self.NTotSamples - self.preTriggerSamples
+        self.maxSamples = self.preTriggerSamples + self.postTriggerSamples
+
+        
 
 
 
@@ -393,12 +401,15 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
 
 
 
+    
+        
 
 
-     def SetupScope(self, chandle, resolution, timebase, NTotSamples, preTriggerSamples,postTriggerSamples,TriggerMode,TriggerSlope,TriggerChannel):
 
-        res =ps.PS5000A_DEVICE_RESOLUTION[resolution]
-        status["resolution"] = ps.ps5000aSetDeviceResolution(chandle,resolution)
+     def SetupScope(self, chandle,):
+
+        # res =ps.PS5000A_DEVICE_RESOLUTION[self.DeviceResolution]
+        # status["resolution"] = ps.ps5000aSetDeviceResolution(chandle,resolution)
         # status["openunit"] = ps.ps5000aOpenUnit(ctypes.byref(chandle), None, resolution)
 
 
@@ -422,10 +433,16 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
         self.ChannelCUpdate(self)
         self.ChannelDUpdate(self)
         
+        self.maxADC = ctypes.c_int16()
+        status["maximumValue"] = ps.ps5000aMaximumValue(chandle, ctypes.byref(self.maxADC))
+        assert_pico_ok(status["maximumValue"])
+        
+        
         self.TriggerSetup(self)
         
-        self.timebase = TimeBaseCalc(self.resolution,self.samp_interval)
+        self.timebase = TimeBaseCalc(self)
         return
+        print(TimeBaseCalc(self))
 
 
      def StartMeasurementButtonFunction(self):
@@ -551,12 +568,43 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
 
 
 
+     '''Timing resoltuion and data-size settings '''
+    
+     def SetupResolution(self):
+         
+         if self.DeviceResolution ==8: res_d = "PS5000A_DR_8BIT"
+         elif self.DeviceResolution ==12: res_d = "PS5000A_DR_12BIT"
+         elif self.DeviceResolution ==14: res_d = "PS5000A_DR_14BIT"
+         else: res_d = "PS5000A_DR_16BIT"
+        
 
-
-
+         res =ps.PS5000A_DEVICE_RESOLUTION[self.DeviceResolution]
+         status["resolution"] = ps.ps5000aSetDeviceResolution(chandle,self.DeviceResolution)
+         status["openunit"] = ps.ps5000aOpenUnit(ctypes.byref(chandle), None, self.DeviceResolution)
 
 
      # '''Channel Functions '''
+     
+     
+     def TimeBaseCalc(self):
+         td = 0
+
+        
+         if self.TimingDivisionComboBoxValue == 'ns': td = 1e-9
+         elif self.TimingDivisionComboBoxValue == 'us': td = 1e-6
+         elif self.TimingDivisionComboBoxValue == 'ms': td = 1e-3
+         else: td = 1
+         
+         samp_interval = self.TimingDivision*td
+         resolution = self.DeviceResolution
+        
+         
+         if samp_interval<16e-9: timebase = 4
+         if resolution  == 0 or 2 or 3:
+             timebase = np.ceil(samp_interval*125000000)+2
+         elif resolution  == 1 or 5:
+             timebase = np.ceil(samp_interval*62500000)+3                  
+         return int(timebase)    
 
 
      def ChannelAButtonPress(self):
