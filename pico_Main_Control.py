@@ -41,6 +41,14 @@ make_dpi_aware()
 chandle = ctypes.c_int16()
 status = {}
 
+timeIntervalns = ctypes.c_float()
+returnedMaxSamples = ctypes.c_int32()
+
+ready = ctypes.c_int16(0)
+check = ctypes.c_int16(0)
+
+overflow = ctypes.c_int16()
+
 
 ''' A function to initialize the picoscope mesurements'''
 def StartPSScope():
@@ -340,6 +348,20 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
         self.TriggerSlopeComboBox.currentTextChanged.connect(self.TriggerSetup)
         self.TriggerChannelComboBox.currentTextChanged.connect(self.TriggerSetup)
         self.TriggerLevelSpinBox.valueChanged.connect(self.TriggerSetup)
+        
+        '''Timing change'''
+        self.TimingTimeDivisionSpinBox.valueChanged.connect(self.TimeBaseCalc)
+        self.TimingTimeDivisionComboBox.currentTextChanged.connect(self.TimeBaseCalc)
+        self.SampleSizeSpinBox.valueChanged.connect(self.TimeBaseCalc)
+        self.PrePostHorizontalScrollBar.valueChanged.connect(self.TimeBaseCalc)
+        
+        '''Timing offset'''
+        self.TimingTimeOffsetSpinBox.valueChanged.connect(self.TimeOffset)
+        self.TimingTimeOffsetComboBox.currentTextChanged.connect(self.TimeOffset)        
+        
+        '''Resolution change''' 
+        self.ResolutionComboBox.currentTextChanged.connect(self.SetupResolution)
+        
 
 
         ''' Channel A change '''
@@ -401,12 +423,13 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
 
 
 
+
     
         
 
 
 
-     def SetupScope(self, chandle,):
+     def SetupScope(self, chandle):
 
         # res =ps.PS5000A_DEVICE_RESOLUTION[self.DeviceResolution]
         # status["resolution"] = ps.ps5000aSetDeviceResolution(chandle,resolution)
@@ -428,21 +451,23 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
         #             # raise
 
 
-        self.ChannelAUpdate(self)
-        self.ChannelBUpdate(self)
-        self.ChannelCUpdate(self)
-        self.ChannelDUpdate(self)
+        # self.ChannelAUpdate(self)
+        # self.ChannelBUpdate(self)
+        # self.ChannelCUpdate(self)
+        # self.ChannelDUpdate(self)
         
-        self.maxADC = ctypes.c_int16()
-        status["maximumValue"] = ps.ps5000aMaximumValue(chandle, ctypes.byref(self.maxADC))
-        assert_pico_ok(status["maximumValue"])
+        # self.maxADC = ctypes.c_int16()
+        # status["maximumValue"] = ps.ps5000aMaximumValue(chandle, ctypes.byref(self.maxADC))
+        # assert_pico_ok(status["maximumValue"])
         
         
-        self.TriggerSetup(self)
+        # self.TriggerSetup(self)
         
-        self.timebase = TimeBaseCalc(self)
+        self.timebase = self.TimeBaseCalc(self)
+        
         return
-        print(TimeBaseCalc(self))
+
+        # print( self.TimeBaseCalc(self))
 
 
      def StartMeasurementButtonFunction(self):
@@ -603,8 +628,29 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
          if resolution  == 0 or 2 or 3:
              timebase = np.ceil(samp_interval*125000000)+2
          elif resolution  == 1 or 5:
-             timebase = np.ceil(samp_interval*62500000)+3                  
+             timebase = np.ceil(samp_interval*62500000)+3      
+             
+             
+             
+         self.preTriggerSamples = math.floor(self.NTotSamples*self.PrePostScale/100)
+         self.postTriggerSamples = self.NTotSamples - self.preTriggerSamples
+         self.maxSamples = self.preTriggerSamples + self.postTriggerSamples
+
          return int(timebase)    
+     
+     
+     def TimeOffset(self,):
+        self.TimingOffset = self.TimingTimeOffsetSpinBox.value()
+        self.TimingOffsetComboBoxValue = self.TimingTimeOffsetComboBox.currentText()
+        to = 0
+        
+        if self.TimingOffsetComboBoxValue == 'ns': to = 1e-9
+        elif self.TimingOffsetComboBoxValue == 'us': to = 1e-6
+        elif self.TimingOffsetComboBoxValue == 'ms': to = 1e-3
+        else: to = 1
+        self.t_off = self.TimingOffsetComboBoxValue*to
+        
+        
 
 
      def ChannelAButtonPress(self):
