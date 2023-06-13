@@ -128,6 +128,13 @@ def StopPSScope(stauts,chandle):
     status["close"]=ps.ps5000aCloseUnit(chandle)
     # assert_pico_ok(status["close"])
 
+def ASGBufferCalc():
+    x = np.arange(0,1024)
+    y = np.zeros(1024)
+    for i in range(x.shape[0]):
+        if x[i]<5: y[i]=1
+        else: y[i] = 0
+    return y
 
 
     
@@ -285,6 +292,9 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
         self.TriggerSlope = self.TriggerSlopeComboBox.currentText()
         self.TriggerChannel = self.TriggerChannelComboBox.currentText()
         self.TriggerLevel = self.TriggerLevelSpinBox.value()
+        self.TriggerDelay = self.TrigDelayspinBox.value()
+        self.GenTriggerSource = 'PS5000A_SIGGEN_SCOPE_TRIG'
+        self.TTLnr = self.TTLnrSPinBox.value()
 
 
         ''' Readout Timing settings '''
@@ -348,6 +358,8 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
         self.TriggerSlopeComboBox.currentTextChanged.connect(self.TriggerSetup)
         self.TriggerChannelComboBox.currentTextChanged.connect(self.TriggerSetup)
         self.TriggerLevelSpinBox.valueChanged.connect(self.TriggerSetup)
+        self.TrigDelayspinBox.valueChanged.connect(self.TriggerSetup)
+        self.TTLnrSPinBox.valueChanged.connect(self.TriggerSetup)
         
         '''Timing change'''
         self.TimingTimeDivisionSpinBox.valueChanged.connect(self.TimeBaseCalc)
@@ -420,6 +432,8 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
 
         ''' Scan plot '''
         self.scp_w = 3
+        
+        self.timebase = self.TimeBaseCalc()
 
 
 
@@ -559,6 +573,16 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
 
      '''Trigger functions '''
 
+     def TriggerDelayCalc(self,delay,timebase,resolution):
+         if resolution  == 0 or 2 or 3:
+             samp_interval = (timebase-2)/1215000000
+         elif resolution  == 1 or 5:
+             samp_interval = (timebase-3)/62500000
+        
+         d_count = int(np.ceil(delay/samp_interval))
+         
+         return d_count
+
      def TriggerSetup(self):
          self.TriggerMode = self.TriggerModeComboBox.currentText()
 
@@ -576,6 +600,8 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
 
          self.TriggerLevel = self.TriggerLevelSpinBox.value()
          self.chRange = 10
+         
+         
 
 
          if self.MeasurementState == 'On':
@@ -588,8 +614,27 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
              # direction = PS5000A_RISING = 2
              # delay = 0 s
              # auto Trigger = 1000 ms
-             self.status["trigger"] = ps.ps5000aSetSimpleTrigger(chandle, 1, self.TriggerChannelVal, self.threshold, self.TriggerSlopeVal, 0, 1000)
-             assert_pico_ok(self.status["trigger"])
+             self.TriggerDelayCount =  self.TriggerDelayCalc( self.TriggerDelay, self.timebase, self.DeviceResolution)
+             # print(self.TriggerDelay, self.timebase, self.DeviceResolution,self.TriggerDelayCount)
+             # self.TriggerDelayCount =0
+             # self.status["trigger"] = ps.ps5000aSetSimpleTrigger(chandle, 1, self.TriggerChannelVal, self.threshold, self.TriggerSlopeVal, self.TriggerDelayCount, 1000)
+             # assert_pico_ok(self.status["trigger"])
+             
+         # self.awgBuffer = 200000*ASGBufferCalc()
+         # # self.awgBuffer = np.sin(np.linspace(0,2*math.pi,1024))
+         # print(self.awgBuffer)
+         # self.awgbufferPointer = self.awgBuffer.ctypes.data_as(ctypes.POINTER(ctypes.c_int16))
+         # self.status["setSigGenArbitrary"] = ps.ps5000aSetSigGenArbitrary(chandle, 0, 200000, 0, 0, 0, 0, self.awgbufferPointer, 1024, 0, 0, 0, 0, 0, 0,  0, 0)
+         # assert_pico_ok(status["setSigGenArbitrary"])
+         wavetype = ctypes.c_int32(1)
+         sweepType = ctypes.c_int32(2)
+         triggertype = ctypes.c_int32(0)
+         triggerSource = ctypes.c_int32(0)
+         
+         self.TTLnr = self.TTLnrSPinBox.value()
+         self.status["setSigGenBuiltInV2"] = ps.ps5000aSetSigGenBuiltInV2(chandle, 0, 4000000, 1, 1000, 1000, 0, 0, 0, 0, self.TTLnr, 0, triggertype, 1, 0)
+         assert_pico_ok(status["setSigGenBuiltInV2"])
+
 
 
 
@@ -628,7 +673,8 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
          if resolution  == 0 or 2 or 3:
              timebase = np.ceil(samp_interval*125000000)+2
          elif resolution  == 1 or 5:
-             timebase = np.ceil(samp_interval*62500000)+3      
+             timebase = np.ceil(samp_interval*62500000)+3     
+         return timebase
              
              
              
@@ -745,7 +791,7 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
              elif self.ChannelAState == 'Off':
                  status["setChA"] = ps.ps5000aSetChannel(chandle, self.channel, 0, self.coupling_type, self.chRange, 0)
                  assert_pico_ok(status["setChA"])
-
+             self.TriggerSetup()
 
      def ChannelBUpdate(self):
 
@@ -767,6 +813,7 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
              elif self.ChannelBState == 'Off':
                  status["setChB"] = ps.ps5000aSetChannel(chandle, self.channel, 0, self.coupling_type, self.chRange, 0)
                  assert_pico_ok(status["setChB"])
+             self.TriggerSetup()
 
 
 
@@ -788,7 +835,7 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
              elif self.ChannelCState == 'Off':
                  status["setChC"] = ps.ps5000aSetChannel(chandle, self.channel, 0,self.coupling_type, self.chRange, 0)
                  assert_pico_ok(status["setChC"])
-
+             self.TriggerSetup()
 
 
      def ChannelDUpdate(self):
@@ -809,7 +856,7 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
              elif self.ChannelDState == 'Off':
                  status["setChD"] = ps.ps5000aSetChannel(chandle, self.channel, 0, self.coupling_type, self.chRange, 0)
                  assert_pico_ok(status["setChD"])
-
+             self.TriggerSetup()
 
 
 
@@ -1303,7 +1350,7 @@ class psMeasureThread1(QObject):
          self.preTriggerSamples = math.floor(self.NTotSamples/10)
          self.postTriggerSamples = self.NTotSamples - self.preTriggerSamples
          self.maxSamples = self.preTriggerSamples + self.postTriggerSamples
-         self.timebase = 8
+         self.timebase = 6
          self.status["runBlock"] = ps.ps5000aRunBlock(chandle, self.preTriggerSamples, self.postTriggerSamples, self.timebase, None, 0, None, None)
          assert_pico_ok(self.status["runBlock"])
 
