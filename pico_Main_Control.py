@@ -9,7 +9,7 @@ import picoscope_main_gui_101022
 from colorama import Fore, Style
 
 
-from numba import jit,njit
+from numba import jit,njit,float32,int32
 import glob
 import pyqtgraph as pg
 import random
@@ -617,8 +617,8 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
              self.TriggerDelayCount =  self.TriggerDelayCalc( self.TriggerDelay, self.timebase, self.DeviceResolution)
              # print(self.TriggerDelay, self.timebase, self.DeviceResolution,self.TriggerDelayCount)
              # self.TriggerDelayCount =0
-             # self.status["trigger"] = ps.ps5000aSetSimpleTrigger(chandle, 1, self.TriggerChannelVal, self.threshold, self.TriggerSlopeVal, self.TriggerDelayCount, 1000)
-             # assert_pico_ok(self.status["trigger"])
+             self.status["trigger"] = ps.ps5000aSetSimpleTrigger(chandle, 1, self.TriggerChannelVal, self.threshold, self.TriggerSlopeVal, self.TriggerDelayCount, 1000)
+             assert_pico_ok(self.status["trigger"])
              
          # self.awgBuffer = 200000*ASGBufferCalc()
          # # self.awgBuffer = np.sin(np.linspace(0,2*math.pi,1024))
@@ -632,8 +632,24 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
          triggerSource = ctypes.c_int32(0)
          
          self.TTLnr = self.TTLnrSPinBox.value()
-         self.status["setSigGenBuiltInV2"] = ps.ps5000aSetSigGenBuiltInV2(chandle, 0, 4000000, 1, 1000, 1000, 0, 0, 0, 0, self.TTLnr, 0, triggertype, 1, 0)
+         self.freq = 142.84
+         self.status["setSigGenBuiltInV2"] = ps.ps5000aSetSigGenBuiltInV2(chandle, 0, 4000000, 1, self.freq , self.freq , 0, 0, 0, 0, self.TTLnr, 0, triggertype, 1, 0)
          assert_pico_ok(status["setSigGenBuiltInV2"])
+         
+         
+         #self.awgBuffer = 1*ASGBufferCalc()
+         #self.awgBuffer = np.sin(np.linspace(0,2000000*math.pi,1024))
+         #print(self.awgBuffer)
+         #self.awgbufferPointer = self.awgBuffer.ctypes.data_as(ctypes.POINTER(ctypes.c_int16))
+         #self.status["setSigGenArbitrary"] = ps.ps5000aSetSigGenArbitrary(chandle, 0, 400000, 0, 0, 0, 0, self.awgbufferPointer, 1024, 0, 0, 0, 0, 0, 0,  1, 0)
+         #assert_pico_ok(status["setSigGenArbitrary"])
+         
+         # awgBuffer = 32767*np.sin(np.linspace(0,2*math.pi,1024))
+         # awgbufferPointer = awgBuffer.ctypes.data_as(ctypes.POINTER(ctypes.c_int16))
+  
+         
+         # status["setSigGenArbitrary"] = ps.ps5000aSetSigGenArbitrary(chandle, 0, 4000000, 0, 0, 0, 0, awgbufferPointer, 1024, 0, 0, 0, 0, 0, 0, 0, 0)
+         # assert_pico_ok(status["setSigGenArbitrary"])
 
 
 
@@ -1034,18 +1050,22 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
 
          if self.BinAvgState == 'On':
               if self.BinAvgCount == self.BinAvgN:
+                  self.BinnedData = binning_function(self.BinAvgData[[0,1],:],self.BinningN)
+                  self.BinAvgPlot.plot(self.BinnedData[0,:],self.BinnedData[1,:] + float(self.ChannelAOffsetValue),pen=(0,0,255),clear = True)
+
                   self.BinAvgCount = 0
                   self.BinAvgData = np.zeros(np.array(self.data.shape))
+                  
 
 
               self.BinAvgData = (self.BinAvgData*self.BinAvgCount+self.data)/(self.BinAvgCount+1)
               self.BinAvgData[0,:] = self.data[0,:]
               self.BinAvgCount += 1
-              print(self.BinAvgCount)
+              # print(self.BinAvgCount)
 
-              if  self.ChannelAState == 'On':
-                  self.BinnedData = binning_function(self.BinAvgData[[0,1],:],self.BinningN)
-                  self.BinAvgPlot.plot(self.BinnedData[0,:],self.BinnedData[1,:] + float(self.ChannelAOffsetValue),pen=(0,0,255),clear = True)
+              # if  self.ChannelAState == 'On':
+                  # self.BinnedData = binning_function(self.BinAvgData[[0,1],:],self.BinningN)
+                  # self.BinAvgPlot.plot(self.BinnedData[0,:],self.BinnedData[1,:] + float(self.ChannelAOffsetValue),pen=(0,0,255),clear = True)
 
 
 
@@ -1350,7 +1370,7 @@ class psMeasureThread1(QObject):
          self.preTriggerSamples = math.floor(self.NTotSamples/10)
          self.postTriggerSamples = self.NTotSamples - self.preTriggerSamples
          self.maxSamples = self.preTriggerSamples + self.postTriggerSamples
-         self.timebase = 6
+         self.timebase = 60
          self.status["runBlock"] = ps.ps5000aRunBlock(chandle, self.preTriggerSamples, self.postTriggerSamples, self.timebase, None, 0, None, None)
          assert_pico_ok(self.status["runBlock"])
 
@@ -1424,7 +1444,7 @@ class psContinuousSaveData(QThread):
      def __init__(self):
         QThread.__init__(self)
 
-# @njit
+
 def binning_function(data, bins):
     return_data = []
     d = 0

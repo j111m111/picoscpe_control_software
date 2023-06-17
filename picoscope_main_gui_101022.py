@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1493, 738)
+        MainWindow.resize(1495, 745)
         font = QtGui.QFont()
         font.setPointSize(12)
         MainWindow.setFont(font)
@@ -389,6 +389,7 @@ class Ui_MainWindow(object):
         font.setBold(False)
         font.setWeight(50)
         self.TriggerLevelSpinBox.setFont(font)
+        self.TriggerLevelSpinBox.setMinimum(-20000.0)
         self.TriggerLevelSpinBox.setMaximum(20000.0)
         self.TriggerLevelSpinBox.setProperty("value", 2500.0)
         self.TriggerLevelSpinBox.setObjectName("TriggerLevelSpinBox")
