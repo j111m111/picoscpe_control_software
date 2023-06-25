@@ -49,6 +49,12 @@ check = ctypes.c_int16(0)
 
 overflow = ctypes.c_int16()
 
+ns = 1e-9
+us = 1e-6
+ms = 1e-3
+
+
+
 
 ''' A function to initialize the picoscope mesurements'''
 def StartPSScope():
@@ -186,7 +192,7 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
         # self.psTextLabel = pg.TextItem("<span style='font-size: 12pt'>x=%0.1f,   <span style='color: red'>y1=%0.1f</span>,   <span style='color: green'>y2=%0.1f</span>" % (1,2,3),anchor=(1, 1), color= (255,0,0))
         # self.psDataPlot.addItem(self.psTextLabel)
 
-        self.label = pg.TextItem('blablalba', anchor = (0,0), color = (0,0,255))
+        self.label = pg.TextItem('blablalba', anchor = (0,0), color = ( 255,255,255))
         self.psDataPlot.addItem(self.label)
 
 
@@ -195,7 +201,7 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
 
 
         self.psDataPlot.plot(self.psCollectedData[0,:],self.psCollectedData[1,:],pen=(255,0,0))
-        self.psDataPlot.plot(self.psCollectedData[0,:],self.psCollectedData[2,:],pen=(0,0,255))
+        self.psDataPlot.plot(self.psCollectedData[0,:],self.psCollectedData[2,:],pen=( 255,255,255))
         self.psDataPlot.plot(self.psCollectedData[0,:],self.psCollectedData[3,:],pen=(0,255,0))
         self.psDataPlot.plot(self.psCollectedData[0,:],self.psCollectedData[4,:],pen=(255,200,0))
 
@@ -204,8 +210,8 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
         " Scan window"
 
 
-        self.ScanColors = [(0,0,255,100),(255,0,0,100),(0,255,0,100),(0,255,255,100),(255,0,255,100),(255,0,127,100),(255,127,0,100)]
-        self.ScanColors1 = [(0,0,255),(255,0,0),(0,255,0),(0,255,255),(255,0,255),(255,0,127),(255,127,0)]
+        self.ScanColors = [( 255,255,255,100),(255,0,0,100),(0,255,0,100),(0,255,255,100),(255,0,255,100),(255,0,127,100),(255,127,0,100)]
+        self.ScanColors1 = [( 255,255,255),(255,0,0),(0,255,0),(0,255,255),(255,0,255),(255,0,127),(255,127,0)]
 
         self.psScanPlot1 = pg.PlotWidget()
         self.psScanPlot2 = pg.PlotWidget()
@@ -232,7 +238,7 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
         # self.ScanRegion8 = pg.LinearRegionItem(orientation = 'vertical', movable = True, brush =(255,0,0,100))
 
         self.psScanPlot1.plot(self.psCollectedData[0,:],self.psCollectedData[1,:],pen=(255,0,0))
-        self.psScanPlot1.plot(self.psCollectedData[0,:],self.psCollectedData[2,:],pen=(0,0,255))
+        self.psScanPlot1.plot(self.psCollectedData[0,:],self.psCollectedData[2,:],pen=( 255,255,255))
         self.psScanPlot1.plot(self.psCollectedData[0,:],self.psCollectedData[3,:],pen=(0,255,0))
         self.psScanPlot1.plot(self.psCollectedData[0,:],self.psCollectedData[4,:],pen=(255,200,0))
         # self.psScanPlot1.addItem(self.ScanRegion1, ignoreBounds=True)
@@ -900,6 +906,7 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
      def UpdatePlot(self,data):
 
          self.data = data
+         self.data[0,:] =self.data[0,:]
          # self.vLine = pg.InfiniteLine(angle=90, movable=True)
          # self.hLine = pg.InfiniteLine(angle=0, movable=True)
          # self.psDataPlot.addItem(self.vLine, ignoreBounds=True)
@@ -916,8 +923,8 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
          # self.psDataPlot.clear()
 
          if  self.ChannelAState == 'On':
-             self.psDataPlot.plot(data[0,:],data[1,:] + float(self.ChannelAOffsetValue),pen=(0,0,255),clear = True)
-             self.psScanPlot1.plot(data[0,:],data[1,:] + float(self.ChannelAOffsetValue),pen=(0,0,255),clear = True)
+             self.psDataPlot.plot(data[0,:],data[1,:] + float(self.ChannelAOffsetValue),pen=( 255,255,255),clear = True)
+             self.psScanPlot1.plot(data[0,:],data[1,:] + float(self.ChannelAOffsetValue),pen=( 255,255,255),clear = True)
          if  self.ChannelBState == 'On':
              self.psDataPlot.plot(data[0,:],data[2,:]+ float(self.ChannelBOffsetValue),pen=(255,0,0))
              self.psScanPlot1.plot(data[0,:],data[2,:]+ float(self.ChannelBOffsetValue),pen=(255,0,0))
@@ -1050,8 +1057,14 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
 
          if self.BinAvgState == 'On':
               if self.BinAvgCount == self.BinAvgN:
-                  self.BinnedData = binning_function(self.BinAvgData[[0,1],:],self.BinningN)
-                  self.BinAvgPlot.plot(self.BinnedData[0,:],self.BinnedData[1,:] + float(self.ChannelAOffsetValue),pen=(0,0,255),clear = True)
+                  self.BinnedData = self.BinAvgData
+                  self.BinnedData = zero_out_repeating_window(self.BinnedData, -8*us, 12000*ns, 200*us)
+                  self.BinnedData = zero_out_repeating_window(self.BinnedData, 8.5*us, 12000*ns, 200*us)
+                  # self.BinnedData = binning_function(self.BinAvgData[[0,1],:],self.BinningN)
+                  
+                  # self.BinnedData = abovesomething(self.BinnedData)
+                  # print(self.BinnedData[0,0],self.BinnedData[0,1])
+                  self.BinAvgPlot.plot(self.BinnedData[0,:],self.BinnedData[1,:] + float(self.ChannelAOffsetValue),pen=( 255,255,255),clear = True)
 
                   self.BinAvgCount = 0
                   self.BinAvgData = np.zeros(np.array(self.data.shape))
@@ -1060,6 +1073,7 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
 
               self.BinAvgData = (self.BinAvgData*self.BinAvgCount+self.data)/(self.BinAvgCount+1)
               self.BinAvgData[0,:] = self.data[0,:]
+             
               self.BinAvgCount += 1
               # print(self.BinAvgCount)
 
@@ -1366,11 +1380,11 @@ class psMeasureThread1(QObject):
          #time.sleep(0.05)
          # self.data_for_transfer.emit(self.data)
 
-         self.NTotSamples = 100000
-         self.preTriggerSamples = math.floor(self.NTotSamples/10)
+         self.NTotSamples = 400000
+         self.preTriggerSamples = 0*math.floor(self.NTotSamples/10)
          self.postTriggerSamples = self.NTotSamples - self.preTriggerSamples
          self.maxSamples = self.preTriggerSamples + self.postTriggerSamples
-         self.timebase = 60
+         self.timebase = 11
          self.status["runBlock"] = ps.ps5000aRunBlock(chandle, self.preTriggerSamples, self.postTriggerSamples, self.timebase, None, 0, None, None)
          assert_pico_ok(self.status["runBlock"])
 
@@ -1412,7 +1426,7 @@ class psMeasureThread1(QObject):
          self.overflow = ctypes.c_int16()
          # create converted type maxSamples
          self.cmaxSamples = ctypes.c_int32(self.maxSamples)
-         self.time = np.linspace(0, (self.cmaxSamples.value - 1) * self.timeIntervalns.value, self.cmaxSamples.value)
+         self.time = np.linspace(0, (self.cmaxSamples.value - 1) * self.timeIntervalns.value, self.cmaxSamples.value)*ns
 
          while self.ready.value == self.check.value:
              self.status["isReady"] = ps.ps5000aIsReady(chandle, ctypes.byref(self.ready))
@@ -1445,17 +1459,58 @@ class psContinuousSaveData(QThread):
         QThread.__init__(self)
 
 
+# def binning_function(data, bins):
+#     return_data = []
+#     d = 0
+#     for i in range(0,data.shape[1]-bins, bins):
+#         d=0
+#         for j in range(i, i+bins):
+#             d = d + data[1,j]
+#         return_data.append([data[0,i], d])
+#     return np.array(return_data).T/bins
+
+@jit
 def binning_function(data, bins):
-    return_data = []
-    d = 0
-    for i in range(0,data.shape[1]-bins, bins):
-        d=0
-        for j in range(i, i+bins):
-            d = d + data[1,j]
-        return_data.append([data[0,i], d])
-    return np.array(return_data).T/bins
+    n = data.shape[1]
+    return_data = np.empty((2, n // bins), dtype=data.dtype)
+    
+    for i in range(0, n - bins, bins):
+        d = 0
+        for j in range(i, i + bins):
+            d += data[1, j]
+        return_data[0, i // bins] = data[0, i]
+        return_data[1, i // bins] = d
+    
+    return return_data / bins
 
+# @jit(nopython=True)
+# def zero_out_repeating_window(dat_array, t0, window, period):
+#     indices = np.where((dat_array[:, 0] - t0) % period < window)[0]
+#     dat_array[indices, 1] = 0
+#     return dat_array.T
 
+# @jit(nopython=True)
+# def zero_out_repeating_window(array, t0, window, period):
+#     indices = np.where((array[0, :] - t0) % period < window)[0]
+#     array[1, indices] = 0
+#     return array
+
+@jit(nopython=True)
+def zero_out_repeating_window(array, t0, window, period):
+    n = array.shape[1]
+    x = np.mean(array[1,:])
+    for i in range(n):
+        time = array[0, i] - t0
+        if time < 0:
+            time += period
+        if time % period < window:
+            array[1, i] = x
+    return array
+
+def abovesomething(array):
+    array[1,array[1,:]<-500] = 1200
+    return array
+    
 def main():
     app = QtWidgets.QApplication(sys.argv)
     # QtGui.QApplication.setStyle(QtGui.QStyleFactory.create('Plastique'))
