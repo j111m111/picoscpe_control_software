@@ -1320,6 +1320,7 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
 
          # print(data[0,:])
          # print(gate[0])
+         print(gate)
          idx_down = np.searchsorted(data[0,:],gate[0])
          idx_up = np.searchsorted(data[0,:],gate[1])
 
@@ -1329,7 +1330,6 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
 
 
      def BinAvgButton(self):
-         0==0
          if self.MeasurementState == 'On':
              if self.BinAvgState == 'Off':
                 self.StartBinningButton.setText('Binning')

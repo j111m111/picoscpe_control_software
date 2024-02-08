@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1395</width>
-    <height>710</height>
+    <height>804</height>
    </rect>
   </property>
   <property name="font">
@@ -89,7 +89,7 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>Gate 1</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -112,7 +112,7 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>Gate 1</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -147,7 +147,7 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>Gate 1</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -159,7 +159,7 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>Gate 1</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -171,7 +171,7 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>Gate 1</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -201,7 +201,7 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>Gate 1</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -222,7 +222,7 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>Gate 1</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -1779,19 +1779,6 @@
          <item>
           <layout class="QVBoxLayout" name="verticalLayout_6">
            <item>
-            <widget class="QLabel" name="label_9">
-             <property name="minimumSize">
-              <size>
-               <width>80</width>
-               <height>20</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Mode&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-            </widget>
-           </item>
-           <item>
             <widget class="QLabel" name="label_11">
              <property name="minimumSize">
               <size>
@@ -1834,38 +1821,6 @@
          </item>
          <item>
           <layout class="QVBoxLayout" name="verticalLayout_7">
-           <item>
-            <widget class="QComboBox" name="TriggerModeComboBox">
-             <property name="minimumSize">
-              <size>
-               <width>80</width>
-               <height>30</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <pointsize>12</pointsize>
-               <weight>50</weight>
-               <bold>false</bold>
-              </font>
-             </property>
-             <item>
-              <property name="text">
-               <string>Repeat</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Single</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>None</string>
-              </property>
-             </item>
-            </widget>
-           </item>
            <item>
             <widget class="QComboBox" name="TriggerSlopeComboBox">
              <property name="minimumSize">
@@ -2116,83 +2071,6 @@
          </item>
          <item>
           <layout class="QVBoxLayout" name="verticalLayout_8">
-           <item>
-            <widget class="QComboBox" name="TimingTimeDivisionComboBox">
-             <property name="minimumSize">
-              <size>
-               <width>60</width>
-               <height>25</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <pointsize>12</pointsize>
-               <weight>50</weight>
-               <bold>false</bold>
-              </font>
-             </property>
-             <item>
-              <property name="text">
-               <string>ns/div</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>μs/div</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>ms/div</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>s/div</string>
-              </property>
-             </item>
-            </widget>
-           </item>
-           <item>
-            <widget class="QComboBox" name="TimingTimeOffsetComboBox">
-             <property name="minimumSize">
-              <size>
-               <width>60</width>
-               <height>25</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <pointsize>12</pointsize>
-               <weight>50</weight>
-               <bold>false</bold>
-              </font>
-             </property>
-             <property name="toolTip">
-              <string>Unit of time offset</string>
-             </property>
-             <item>
-              <property name="text">
-               <string>ns</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>μs</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>ms</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>s</string>
-              </property>
-             </item>
-            </widget>
-           </item>
            <item>
             <widget class="QFrame" name="frame_3">
              <property name="frameShape">
