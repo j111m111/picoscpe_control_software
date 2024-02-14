@@ -294,20 +294,17 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
 
 
         ''' Readout trigger settings'''
-        self.TriggerMode = self.TriggerModeComboBox.currentText()
+    
         self.TriggerSlope = self.TriggerSlopeComboBox.currentText()
         self.TriggerChannel = self.TriggerChannelComboBox.currentText()
         self.TriggerLevel = self.TriggerLevelSpinBox.value()
-        self.TriggerDelay = self.TrigDelayspinBox.value()
         self.GenTriggerSource = 'PS5000A_SIGGEN_SCOPE_TRIG'
-        self.TTLnr = self.TTLnrSPinBox.value()
+        #self.TTLnr = self.TTLnrSPinBox.value()
 
 
         ''' Readout Timing settings '''
         self.TimingDivision = self.TimingTimeDivisionSpinBox.value()
         self.TimingDivisionComboBoxValue = self.TimingTimeDivisionComboBox.currentText()
-        self.TimingOffset = self.TimingTimeOffsetSpinBox.value()
-        self.TimingOffsetComboBoxValue = self.TimingTimeOffsetComboBox.currentText()
         self.DeviceResolution = self.ResolutionComboBox.currentText()
         self.NTotSamples = self.SampleSizeSpinBox.value()
         self.PrePostScale = self.PrePostHorizontalScrollBar.value()
@@ -360,22 +357,17 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
 
 
         ''' Trigger change '''
-        self.TriggerModeComboBox.currentTextChanged.connect(self.TriggerSetup)
         self.TriggerSlopeComboBox.currentTextChanged.connect(self.TriggerSetup)
         self.TriggerChannelComboBox.currentTextChanged.connect(self.TriggerSetup)
         self.TriggerLevelSpinBox.valueChanged.connect(self.TriggerSetup)
-        self.TrigDelayspinBox.valueChanged.connect(self.TriggerSetup)
-        self.TTLnrSPinBox.valueChanged.connect(self.TriggerSetup)
+        #self.TTLnrSPinBox.valueChanged.connect(self.TriggerSetup)
         
         '''Timing change'''
         self.TimingTimeDivisionSpinBox.valueChanged.connect(self.TimeBaseCalc)
         self.TimingTimeDivisionComboBox.currentTextChanged.connect(self.TimeBaseCalc)
         self.SampleSizeSpinBox.valueChanged.connect(self.TimeBaseCalc)
         self.PrePostHorizontalScrollBar.valueChanged.connect(self.TimeBaseCalc)
-        
-        '''Timing offset'''
-        self.TimingTimeOffsetSpinBox.valueChanged.connect(self.TimeOffset)
-        self.TimingTimeOffsetComboBox.currentTextChanged.connect(self.TimeOffset)        
+             
         
         '''Resolution change''' 
         self.ResolutionComboBox.currentTextChanged.connect(self.SetupResolution)
@@ -448,11 +440,25 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
         
 
 
+        ''' Setup scope '''
 
-     def SetupScope(self, chandle):
+        self.chandle = ctypes.c_int16()  
+        self.status = {}
+        self.timeIntervalns = ctypes.c_float()
+        self.returnedMaxSamples = ctypes.c_int32()
 
-        # res =ps.PS5000A_DEVICE_RESOLUTION[self.DeviceResolution]
-        # status["resolution"] = ps.ps5000aSetDeviceResolution(chandle,resolution)
+        self.ready = ctypes.c_int16(0)
+        self.check = ctypes.c_int16(0)
+        self.overflow = ctypes.c_int16()
+
+
+     def SetupScope(self):
+
+        self.SetupResolution()
+        self.ChannelAUpdate()
+        self.ChannelBUpdate()
+        self.TriggerSetup()
+        self.transfer_parameters = Data_to_Send()
         # status["openunit"] = ps.ps5000aOpenUnit(ctypes.byref(chandle), None, resolution)
 
 
@@ -526,7 +532,8 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
                 self.thread.start()
                 self.psMT.data_for_transfer.connect(self.UpdatePlot)
                 self.data_transfer_to_worker.connect(self.psMT.DataFrom_GUI)
-                self.data_transfer_to_worker.emit('abc')
+                self.transfer_parameters = self.Data_to_Send()
+                self.data_transfer_to_worker.emit(self.transfer_parameters)
 
 
 
@@ -590,8 +597,7 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
          return d_count
 
      def TriggerSetup(self):
-         self.TriggerMode = self.TriggerModeComboBox.currentText()
-
+        
 
          self.TriggerSlope = self.TriggerSlopeComboBox.currentText()
          if self.TriggerSlope == 'Rising': self.TriggerSlopeVal = 2
@@ -620,10 +626,10 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
              # direction = PS5000A_RISING = 2
              # delay = 0 s
              # auto Trigger = 1000 ms
-             self.TriggerDelayCount =  self.TriggerDelayCalc( self.TriggerDelay, self.timebase, self.DeviceResolution)
+             #self.TriggerDelayCount =  self.TriggerDelayCalc( self.TriggerDelay, self.timebase, self.DeviceResolution)
              # print(self.TriggerDelay, self.timebase, self.DeviceResolution,self.TriggerDelayCount)
              # self.TriggerDelayCount =0
-             self.status["trigger"] = ps.ps5000aSetSimpleTrigger(chandle, 1, self.TriggerChannelVal, self.threshold, self.TriggerSlopeVal, self.TriggerDelayCount, 1000)
+             self.status["trigger"] = ps.ps5000aSetSimpleTrigger(chandle, 1, self.TriggerChannelVal, self.threshold, self.TriggerSlopeVal, 0, 1000)
              assert_pico_ok(self.status["trigger"])
              
          # self.awgBuffer = 200000*ASGBufferCalc()
@@ -637,10 +643,10 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
          triggertype = ctypes.c_int32(0)
          triggerSource = ctypes.c_int32(0)
          
-         self.TTLnr = self.TTLnrSPinBox.value()
-         self.freq = 142.84
-         self.status["setSigGenBuiltInV2"] = ps.ps5000aSetSigGenBuiltInV2(chandle, 0, 4000000, 1, self.freq , self.freq , 0, 0, 0, 0, self.TTLnr, 0, triggertype, 1, 0)
-         assert_pico_ok(status["setSigGenBuiltInV2"])
+         #self.TTLnr = self.TTLnrSPinBox.value()
+         #self.freq = 142.84
+         #self.status["setSigGenBuiltInV2"] = ps.ps5000aSetSigGenBuiltInV2(chandle, 0, 4000000, 1, self.freq , self.freq , 0, 0, 0, 0, self.TTLnr, 0, triggertype, 1, 0)
+         #assert_pico_ok(status["setSigGenBuiltInV2"])
          
          
          #self.awgBuffer = 1*ASGBufferCalc()
@@ -696,7 +702,7 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
              timebase = np.ceil(samp_interval*125000000)+2
          elif resolution  == 1 or 5:
              timebase = np.ceil(samp_interval*62500000)+3     
-         return timebase
+         #return timebase
              
              
              
@@ -707,17 +713,6 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
          return int(timebase)    
      
      
-     def TimeOffset(self,):
-        self.TimingOffset = self.TimingTimeOffsetSpinBox.value()
-        self.TimingOffsetComboBoxValue = self.TimingTimeOffsetComboBox.currentText()
-        to = 0
-        
-        if self.TimingOffsetComboBoxValue == 'ns': to = 1e-9
-        elif self.TimingOffsetComboBoxValue == 'us': to = 1e-6
-        elif self.TimingOffsetComboBoxValue == 'ms': to = 1e-3
-        else: to = 1
-        self.t_off = self.TimingOffsetComboBoxValue*to
-        
         
 
 
@@ -794,7 +789,7 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
 
      def ChannelAUpdate(self):
 
-         if self.MeasurementState == 'On':
+         if self.MeasurementState == 'On'and self.ChannelBState == 'On':
 
              self.channel = ps.PS5000A_CHANNEL["PS5000A_CHANNEL_A"]
              self.ChACoupling = self.ChannelACouplingComboBox.currentText()
@@ -1345,6 +1340,18 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
                 self.StartBinningButton.setStyleSheet('background-color : light grey')
                 self.BinAvgState = 'Off'
 
+     def Data_to_Send(self):
+         self.transfer_parameters = {}
+         self.transfer_parameters['NTotSamples'] = self.NTotSamples
+         self.transfer_parameters['preTriggerSamples'] = self.preTriggerSamples
+         self.transfer_parameters['postTriggerSamples'] = self.postTriggerSamples
+         self.transfer_parameters['maxSamples'] = self.maxSamples
+         self.transfer_parameters['timebase'] = self.timebase
+
+         return self.transfer_parameters
+     
+
+         
 
 
 
@@ -1352,6 +1359,7 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
 
 
 class psMeasureThread1(QObject):
+
 
 
      data_for_transfer = pyqtSignal(object)
@@ -1370,7 +1378,14 @@ class psMeasureThread1(QObject):
          self._timer.timeout.connect(self.LoopFunc)
          self._timer.start(20)
 
-
+     def DataFrom_GUI(self,data):
+         print(data)
+         
+         self.NTotSamples = data['NTotSamples'] 
+         self.preTriggerSamples = data['preTriggerSamples'] 
+         self.postTriggerSamples = data['postTriggerSamples'] 
+         self.maxSamples = data['maxSamples']
+         self.timebase = data['timebase'] 
 
 
      def LoopFunc(self):
@@ -1380,11 +1395,11 @@ class psMeasureThread1(QObject):
          #time.sleep(0.05)
          # self.data_for_transfer.emit(self.data)
 
-         self.NTotSamples = 400000
-         self.preTriggerSamples = 0*math.floor(self.NTotSamples/10)
-         self.postTriggerSamples = self.NTotSamples - self.preTriggerSamples
-         self.maxSamples = self.preTriggerSamples + self.postTriggerSamples
-         self.timebase = 11
+         #self.NTotSamples = 4000
+         #self.preTriggerSamples = 0*math.floor(self.NTotSamples/10)
+         #self.postTriggerSamples = self.NTotSamples - self.preTriggerSamples
+         #self.maxSamples = self.preTriggerSamples + self.postTriggerSamples
+         self.timebase = 5
          self.status["runBlock"] = ps.ps5000aRunBlock(chandle, self.preTriggerSamples, self.postTriggerSamples, self.timebase, None, 0, None, None)
          assert_pico_ok(self.status["runBlock"])
 
@@ -1439,8 +1454,7 @@ class psMeasureThread1(QObject):
          self.data = np.vstack((self.time, self.adc2mVChAMax, self.adc2mVChBMax))
          self.data_for_transfer.emit(self.data)
 
-     def DataFrom_GUI(self,data):
-         print(data)
+     
 
 
 

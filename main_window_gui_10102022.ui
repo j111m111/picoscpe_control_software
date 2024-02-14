@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1495</width>
-    <height>745</height>
+    <height>861</height>
    </rect>
   </property>
   <property name="font">
@@ -636,19 +636,6 @@
          <item>
           <layout class="QVBoxLayout" name="verticalLayout_6">
            <item>
-            <widget class="QLabel" name="label_9">
-             <property name="minimumSize">
-              <size>
-               <width>80</width>
-               <height>20</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Mode&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-            </widget>
-           </item>
-           <item>
             <widget class="QLabel" name="label_11">
              <property name="minimumSize">
               <size>
@@ -691,38 +678,6 @@
          </item>
          <item>
           <layout class="QVBoxLayout" name="verticalLayout_7">
-           <item>
-            <widget class="QComboBox" name="TriggerModeComboBox">
-             <property name="minimumSize">
-              <size>
-               <width>80</width>
-               <height>30</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <pointsize>12</pointsize>
-               <weight>50</weight>
-               <bold>false</bold>
-              </font>
-             </property>
-             <item>
-              <property name="text">
-               <string>Repeat</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Single</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>None</string>
-              </property>
-             </item>
-            </widget>
-           </item>
            <item>
             <widget class="QComboBox" name="TriggerSlopeComboBox">
              <property name="minimumSize">
@@ -880,46 +835,6 @@
             </widget>
            </item>
            <item>
-            <widget class="QComboBox" name="TimingTimeOffsetComboBox">
-             <property name="minimumSize">
-              <size>
-               <width>60</width>
-               <height>10</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <pointsize>12</pointsize>
-               <weight>50</weight>
-               <bold>false</bold>
-              </font>
-             </property>
-             <property name="toolTip">
-              <string>Unit of time offset</string>
-             </property>
-             <item>
-              <property name="text">
-               <string>ns</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>μs</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>ms</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>s</string>
-              </property>
-             </item>
-            </widget>
-           </item>
-           <item>
             <widget class="QFrame" name="frame_3">
              <property name="frameShape">
               <enum>QFrame::StyledPanel</enum>
@@ -927,25 +842,6 @@
              <property name="frameShadow">
               <enum>QFrame::Raised</enum>
              </property>
-             <widget class="QLabel" name="label_28">
-              <property name="geometry">
-               <rect>
-                <x>9</x>
-                <y>36</y>
-                <width>35</width>
-                <height>20</height>
-               </rect>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>0</width>
-                <height>20</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>μs</string>
-              </property>
-             </widget>
             </widget>
            </item>
           </layout>
@@ -978,26 +874,6 @@
              </property>
              <property name="value">
               <number>500</number>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QSpinBox" name="TimingTimeOffsetSpinBox">
-             <property name="minimumSize">
-              <size>
-               <width>60</width>
-               <height>20</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <pointsize>12</pointsize>
-               <weight>50</weight>
-               <bold>false</bold>
-              </font>
-             </property>
-             <property name="toolTip">
-              <string>Time offset from the zero point (trigger)</string>
              </property>
             </widget>
            </item>
@@ -1053,32 +929,6 @@
              </property>
             </widget>
            </item>
-           <item>
-            <widget class="QSpinBox" name="TrigDelayspinBox">
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>20</height>
-              </size>
-             </property>
-             <property name="maximum">
-              <number>999999999</number>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QSpinBox" name="TTLnrSPinBox">
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>20</height>
-              </size>
-             </property>
-             <property name="minimum">
-              <number>1</number>
-             </property>
-            </widget>
-           </item>
           </layout>
          </item>
          <item row="0" column="0">
@@ -1105,30 +955,7 @@
               <string>Time between two divisons</string>
              </property>
              <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sample interval&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="label_16">
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>20</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <pointsize>12</pointsize>
-               <weight>50</weight>
-               <bold>false</bold>
-              </font>
-             </property>
-             <property name="toolTip">
-              <string>Time offset from the zero point (trigger)</string>
-             </property>
-             <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Time offset&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Time res.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
             </widget>
            </item>
@@ -1155,32 +982,6 @@
              </property>
              <property name="text">
               <string>Nr. Samples</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="label_23">
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>20</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>Delay</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="label_34">
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>20</height>
-              </size>
-             </property>
-             <property name="text">
-              <string>TTL nr.</string>
              </property>
             </widget>
            </item>
