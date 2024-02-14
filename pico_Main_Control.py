@@ -142,18 +142,7 @@ def ASGBufferCalc():
         else: y[i] = 0
     return y
 
-
-    
-# def TimeBaseCalc(resolution,samp_interval):
-    
-#     if samp_interval<16e-9: timebase = 4
-#     if resolution  == 0 or 2 or 3:
-#         timebase = np.ceil(samp_interval*125000000)+2
-#     elif resolution  == 1 or 5:
-#         timebase = np.ceil(samp_interval*62500000)+3                  
-#     return int(timebase)    
                            
-
 class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
 
 
@@ -370,7 +359,7 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
              
         
         '''Resolution change''' 
-        self.ResolutionComboBox.currentTextChanged.connect(self.SetupResolution)
+        self.ResolutionComboBox.currentTextChanged.connect(self.SetupScope)
         
 
 
@@ -458,7 +447,7 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
         self.ChannelAUpdate()
         self.ChannelBUpdate()
         self.TriggerSetup()
-        self.transfer_parameters = Data_to_Send()
+        self.transfer_parameters = self.Data_to_Send()
         # status["openunit"] = ps.ps5000aOpenUnit(ctypes.byref(chandle), None, resolution)
 
 
@@ -490,10 +479,7 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
         # self.TriggerSetup(self)
         
         self.timebase = self.TimeBaseCalc(self)
-        
-        return
 
-        # print( self.TimeBaseCalc(self))
 
 
      def StartMeasurementButtonFunction(self):
@@ -517,6 +503,7 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
                 self.ChannelAUpdate()
                 self.ChannelAUpdate()
                 self.ChannelBUpdate()
+                self.TimeBaseCalc()
 
 
                 # self.psMT = psMeasureThread()
@@ -532,7 +519,7 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
                 self.thread.start()
                 self.psMT.data_for_transfer.connect(self.UpdatePlot)
                 self.data_transfer_to_worker.connect(self.psMT.DataFrom_GUI)
-                self.transfer_parameters = self.Data_to_Send()
+                self.Data_to_Send()
                 self.data_transfer_to_worker.emit(self.transfer_parameters)
 
 
@@ -632,53 +619,25 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
              self.status["trigger"] = ps.ps5000aSetSimpleTrigger(chandle, 1, self.TriggerChannelVal, self.threshold, self.TriggerSlopeVal, 0, 1000)
              assert_pico_ok(self.status["trigger"])
              
-         # self.awgBuffer = 200000*ASGBufferCalc()
-         # # self.awgBuffer = np.sin(np.linspace(0,2*math.pi,1024))
-         # print(self.awgBuffer)
-         # self.awgbufferPointer = self.awgBuffer.ctypes.data_as(ctypes.POINTER(ctypes.c_int16))
-         # self.status["setSigGenArbitrary"] = ps.ps5000aSetSigGenArbitrary(chandle, 0, 200000, 0, 0, 0, 0, self.awgbufferPointer, 1024, 0, 0, 0, 0, 0, 0,  0, 0)
-         # assert_pico_ok(status["setSigGenArbitrary"])
-         wavetype = ctypes.c_int32(1)
-         sweepType = ctypes.c_int32(2)
-         triggertype = ctypes.c_int32(0)
-         triggerSource = ctypes.c_int32(0)
-         
-         #self.TTLnr = self.TTLnrSPinBox.value()
-         #self.freq = 142.84
-         #self.status["setSigGenBuiltInV2"] = ps.ps5000aSetSigGenBuiltInV2(chandle, 0, 4000000, 1, self.freq , self.freq , 0, 0, 0, 0, self.TTLnr, 0, triggertype, 1, 0)
-         #assert_pico_ok(status["setSigGenBuiltInV2"])
-         
-         
-         #self.awgBuffer = 1*ASGBufferCalc()
-         #self.awgBuffer = np.sin(np.linspace(0,2000000*math.pi,1024))
-         #print(self.awgBuffer)
-         #self.awgbufferPointer = self.awgBuffer.ctypes.data_as(ctypes.POINTER(ctypes.c_int16))
-         #self.status["setSigGenArbitrary"] = ps.ps5000aSetSigGenArbitrary(chandle, 0, 400000, 0, 0, 0, 0, self.awgbufferPointer, 1024, 0, 0, 0, 0, 0, 0,  1, 0)
-         #assert_pico_ok(status["setSigGenArbitrary"])
-         
-         # awgBuffer = 32767*np.sin(np.linspace(0,2*math.pi,1024))
-         # awgbufferPointer = awgBuffer.ctypes.data_as(ctypes.POINTER(ctypes.c_int16))
-  
-         
-         # status["setSigGenArbitrary"] = ps.ps5000aSetSigGenArbitrary(chandle, 0, 4000000, 0, 0, 0, 0, awgbufferPointer, 1024, 0, 0, 0, 0, 0, 0, 0, 0)
-         # assert_pico_ok(status["setSigGenArbitrary"])
-
-
-
 
      '''Timing resoltuion and data-size settings '''
     
      def SetupResolution(self):
          
-         if self.DeviceResolution ==8: res_d = "PS5000A_DR_8BIT"
-         elif self.DeviceResolution ==12: res_d = "PS5000A_DR_12BIT"
-         elif self.DeviceResolution ==14: res_d = "PS5000A_DR_14BIT"
-         else: res_d = "PS5000A_DR_16BIT"
+         self.DeviceResolution = self.ResolutionComboBox.currentText()
+         
+         self.DeviceResolution = int(self.DeviceResolution)
+         if self.DeviceResolution ==8: self.res_d = "PS5000A_DR_8BIT"
+         elif self.DeviceResolution ==12: self.res_d = "PS5000A_DR_12BIT"
+         elif self.DeviceResolution ==14: self.res_d = "PS5000A_DR_14BIT"
+         else: self.res_d = "PS5000A_DR_16BIT"
+         print(self.res_d)
+         
         
 
-         res =ps.PS5000A_DEVICE_RESOLUTION[self.DeviceResolution]
-         status["resolution"] = ps.ps5000aSetDeviceResolution(chandle,self.DeviceResolution)
-         status["openunit"] = ps.ps5000aOpenUnit(ctypes.byref(chandle), None, self.DeviceResolution)
+         self.res =ps.PS5000A_DEVICE_RESOLUTION[self.res_d]
+         status["resolution"] = ps.ps5000aSetDeviceResolution(chandle,self.res)
+         status["openunit"] = ps.ps5000aOpenUnit(ctypes.byref(chandle), None, self.res)
 
 
      # '''Channel Functions '''
@@ -686,32 +645,72 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
      
      def TimeBaseCalc(self):
          td = 0
-
+         self.NTotSamples = self.SampleSizeSpinBox.value()
+         self.PrePostScale = self.PrePostHorizontalScrollBar.value()
+         self.TimingDivision = self.TimingTimeDivisionSpinBox.value()
+         self.TimingDivisionComboBoxValue = self.TimingTimeDivisionComboBox.currentText()
         
          if self.TimingDivisionComboBoxValue == 'ns': td = 1e-9
-         elif self.TimingDivisionComboBoxValue == 'us': td = 1e-6
+         elif self.TimingDivisionComboBoxValue == 'μs': td = 1e-6
          elif self.TimingDivisionComboBoxValue == 'ms': td = 1e-3
-         else: td = 1
+         else: td = 1e-9
+         print(self.TimingDivisionComboBoxValue,td)
          
          samp_interval = self.TimingDivision*td
          resolution = self.DeviceResolution
         
          
-         if samp_interval<16e-9: timebase = 4
-         if resolution  == 0 or 2 or 3:
-             timebase = np.ceil(samp_interval*125000000)+2
-         elif resolution  == 1 or 5:
-             timebase = np.ceil(samp_interval*62500000)+3     
+        # if samp_interval<16e-9: timebase = 4
+        # if resolution  == 8 or 14 or 15:
+        #     timebase = np.ceil(samp_interval*125000000)+2
+        # elif resolution  == 12 or 16:
+        #     timebase = np.ceil(samp_interval*62500000)+3     
          #return timebase
+
+         print('resolution is:',resolution,samp_interval*1e9,type(resolution))
+         if resolution == '8':
              
+             if samp_interval<4e-9:
+                timebase =  np.log2(1000000000*4e-9)
+             else: 
+                timebase = np.ceil(samp_interval*125000000)+2
+             print('si',samp_interval)
+               
+
+         if resolution == '12':
+             if samp_interval<4e-9: samp_interval=4e-9
+             if samp_interval<16e-9: timebase = np.log2(1000000000*samp_interval)
+             else: timebase = np.ceil(samp_interval*125000000)+2
+
+         if resolution == '14':
+             if samp_interval<16e-9: 
+                 samp_interval=8e-9
+                 timebase = np.ceil(samp_interval*125000000) 
+             else:
+                 timebase = np.ceil(samp_interval*125000000)+2
              
+         if   resolution == '16':
+             if samp_interval<32e-9: 
+                 samp_interval=16e-9
+                 timebase = np.ceil(samp_interval*62500000) 
+             else:
+                 timebase = np.ceil(samp_interval*62500000)+3  
              
+                      
+
+
+
+             
+         print(timebase)    
+         #self.timebase = int(timebase)    
          self.preTriggerSamples = math.floor(self.NTotSamples*self.PrePostScale/100)
          self.postTriggerSamples = self.NTotSamples - self.preTriggerSamples
          self.maxSamples = self.preTriggerSamples + self.postTriggerSamples
+         self.timebase = int(timebase)
+         self.Data_to_Send()
+         self.data_transfer_to_worker.emit(self.transfer_parameters)
 
-         return int(timebase)    
-     
+
      
         
 
@@ -1341,14 +1340,17 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
                 self.BinAvgState = 'Off'
 
      def Data_to_Send(self):
+         
          self.transfer_parameters = {}
          self.transfer_parameters['NTotSamples'] = self.NTotSamples
          self.transfer_parameters['preTriggerSamples'] = self.preTriggerSamples
          self.transfer_parameters['postTriggerSamples'] = self.postTriggerSamples
          self.transfer_parameters['maxSamples'] = self.maxSamples
          self.transfer_parameters['timebase'] = self.timebase
+         self.transfer_parameters['status'] = status
+         print(self.transfer_parameters)
 
-         return self.transfer_parameters
+         #return self.transfer_parameters
      
 
          
@@ -1386,6 +1388,8 @@ class psMeasureThread1(QObject):
          self.postTriggerSamples = data['postTriggerSamples'] 
          self.maxSamples = data['maxSamples']
          self.timebase = data['timebase'] 
+         self.status['status'] = data['status']
+         
 
 
      def LoopFunc(self):
@@ -1399,7 +1403,7 @@ class psMeasureThread1(QObject):
          #self.preTriggerSamples = 0*math.floor(self.NTotSamples/10)
          #self.postTriggerSamples = self.NTotSamples - self.preTriggerSamples
          #self.maxSamples = self.preTriggerSamples + self.postTriggerSamples
-         self.timebase = 5
+         #self.timebase = 5
          self.status["runBlock"] = ps.ps5000aRunBlock(chandle, self.preTriggerSamples, self.postTriggerSamples, self.timebase, None, 0, None, None)
          assert_pico_ok(self.status["runBlock"])
 
