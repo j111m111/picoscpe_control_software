@@ -367,24 +367,27 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
         self.ChannelACouplingComboBox.currentTextChanged.connect(self.ChannelAUpdate)
         self.ChannelAOffsetSpinBox.valueChanged.connect(self.ChannelAUpdate)
         self.ChARangeBox.currentTextChanged.connect(self.ChannelAUpdate)
+        self.chARange = None
 
 
         ''' Channel B change '''
         self.ChannelBCouplingComboBox.currentTextChanged.connect(self.ChannelBUpdate)
         self.ChannelBOffsetSpinBox.valueChanged.connect(self.ChannelBUpdate)
         self.ChBRangeBox.currentTextChanged.connect(self.ChannelBUpdate)
-
+        self.chBRange = None
 
         ''' Channel C change '''
         self.ChannelCCouplingComboBox.currentTextChanged.connect(self.ChannelCUpdate)
         self.ChannelCOffsetSpinBox.valueChanged.connect(self.ChannelCUpdate)
         self.ChCRangeBox.currentTextChanged.connect(self.ChannelCUpdate)
+        self.chCRange = None
 
 
         ''' Channel D change '''
         self.ChannelDCouplingComboBox.currentTextChanged.connect(self.ChannelDUpdate)
         self.ChannelDOffsetSpinBox.valueChanged.connect(self.ChannelDUpdate)
         self.ChDRangeBox.currentTextChanged.connect(self.ChannelDUpdate)
+        self.chDRange = None
 
         ''' Channel voltage ranges '''
         self.ChannelVoltageRanges = ['PS5000A_10MV','PS5000A_20MV','PS5000A_50MV','PS5000A_100MV','PS5000A_200MV','PS5000A_500MV','PS5000A_1V',
@@ -420,7 +423,7 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
         ''' Scan plot '''
         self.scp_w = 3
         
-        self.timebase = self.TimeBaseCalc()
+        self.TimeBaseCalc()
 
 
 
@@ -448,6 +451,7 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
         self.ChannelBUpdate()
         self.TriggerSetup()
         self.transfer_parameters = self.Data_to_Send()
+
         # status["openunit"] = ps.ps5000aOpenUnit(ctypes.byref(chandle), None, resolution)
 
 
@@ -478,7 +482,7 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
         
         # self.TriggerSetup(self)
         
-        self.timebase = self.TimeBaseCalc(self)
+        
 
 
 
@@ -504,6 +508,8 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
                 self.ChannelAUpdate()
                 self.ChannelBUpdate()
                 self.TimeBaseCalc()
+                
+
 
 
                 # self.psMT = psMeasureThread()
@@ -631,13 +637,18 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
          elif self.DeviceResolution ==12: self.res_d = "PS5000A_DR_12BIT"
          elif self.DeviceResolution ==14: self.res_d = "PS5000A_DR_14BIT"
          else: self.res_d = "PS5000A_DR_16BIT"
-         print(self.res_d)
+         #print(self.res_d)
          
         
 
          self.res =ps.PS5000A_DEVICE_RESOLUTION[self.res_d]
+    
          status["resolution"] = ps.ps5000aSetDeviceResolution(chandle,self.res)
-         status["openunit"] = ps.ps5000aOpenUnit(ctypes.byref(chandle), None, self.res)
+       
+         
+         
+     
+         #status["openunit"] = ps.ps5000aOpenUnit(ctypes.byref(chandle), None, self.res)
 
 
      # '''Channel Functions '''
@@ -654,59 +665,81 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
          elif self.TimingDivisionComboBoxValue == 'μs': td = 1e-6
          elif self.TimingDivisionComboBoxValue == 'ms': td = 1e-3
          else: td = 1e-9
-         print(self.TimingDivisionComboBoxValue,td)
+         #print(self.TimingDivisionComboBoxValue,td)
          
          samp_interval = self.TimingDivision*td
          resolution = self.DeviceResolution
         
          
-        # if samp_interval<16e-9: timebase = 4
-        # if resolution  == 8 or 14 or 15:
+        #  if samp_interval<17e-9: timebase = 4
+        #  elif resolution  == 8 or 14 or 15:
         #     timebase = np.ceil(samp_interval*125000000)+2
-        # elif resolution  == 12 or 16:
+        #  elif resolution  == 12 or 16:
         #     timebase = np.ceil(samp_interval*62500000)+3     
          #return timebase
 
-         print('resolution is:',resolution,samp_interval*1e9,type(resolution))
-         if resolution == '8':
+         #print('resolution is:',resolution,samp_interval*1e9,type(resolution))
+         print('res is ',resolution,type(resolution))
+         if int(resolution) == 8:
              
              if samp_interval<4e-9:
-                timebase =  np.log2(1000000000*4e-9)
+                self.timebase =  np.log2(1000000000*4e-9)
              else: 
-                timebase = np.ceil(samp_interval*125000000)+2
-             print('si',samp_interval)
-               
+                self.timebase = np.ceil(samp_interval*125000000)+2
+                print(samp_interval,self.timebase, (self.timebase-2)/125000000/1e-9)
+             
 
-         if resolution == '12':
+         if int(resolution) == 12:
              if samp_interval<4e-9: samp_interval=4e-9
-             if samp_interval<16e-9: timebase = np.log2(1000000000*samp_interval)
-             else: timebase = np.ceil(samp_interval*125000000)+2
+             if samp_interval<16e-9: self.timebase = np.ceil(np.log2(500000000*samp_interval))+1
+             else: 
+                self.timebase = (np.ceil(samp_interval*62500000)+3)
+                print(samp_interval,self.timebase, (self.timebase-3)/62500000/1e-9)
 
-         if resolution == '14':
+         if int(resolution) == 14:
              if samp_interval<16e-9: 
                  samp_interval=8e-9
-                 timebase = np.ceil(samp_interval*125000000) 
+                 self.timebase = np.ceil(samp_interval*125000000) 
              else:
-                 timebase = np.ceil(samp_interval*125000000)+2
+                 self.timebase = np.ceil(samp_interval*125000000)+2
+                 print(samp_interval,self.timebase, (self.timebase-3)/62500000/1e-9)
              
-         if   resolution == '16':
+         if   int(resolution) == 16:
              if samp_interval<32e-9: 
                  samp_interval=16e-9
-                 timebase = np.ceil(samp_interval*62500000) 
+                 self.timebase = np.ceil(samp_interval*62500000) 
              else:
-                 timebase = np.ceil(samp_interval*62500000)+3  
+                 self.timebase = np.ceil(samp_interval*62500000)+3  
              
                       
 
 
 
              
-         print(timebase)    
+         #print(timebase)    
          #self.timebase = int(timebase)    
          self.preTriggerSamples = math.floor(self.NTotSamples*self.PrePostScale/100)
          self.postTriggerSamples = self.NTotSamples - self.preTriggerSamples
          self.maxSamples = self.preTriggerSamples + self.postTriggerSamples
-         self.timebase = int(timebase)
+         self.timebase = int(self.timebase)
+        
+         self.chandle = ctypes.c_int16()
+         self.status=status
+         self.timeIntervalns = ctypes.c_float()
+         self.returnedMaxSamples = ctypes.c_int32()
+         print(self.status)
+         #self.status["getTimebase2"] = ps.ps5000aGetTimebase2(self.chandle, self.timebase, self.maxSamples, ctypes.byref(self.timeIntervalns), ctypes.byref(self.returnedMaxSamples), 0)
+         #assert_pico_ok(self.status["getTimebase2"])
+         #self.ready = ctypes.c_int16(0)
+         #self.check = ctypes.c_int16(0)
+
+         #self.bufferAMax = (ctypes.c_int16 * self.maxSamples)()
+         #self.bufferAMin = (ctypes.c_int16 * self.maxSamples)() # used for downsampling which isn't in the scope of this example
+         #self.bufferBMax = (ctypes.c_int16 * self.maxSamples)()
+         #self.bufferBMin = (ctypes.c_int16 * self.maxSamples)() # used for downsampling which isn't in the scope of this example
+
+
+
          self.Data_to_Send()
          self.data_transfer_to_worker.emit(self.transfer_parameters)
 
@@ -788,7 +821,7 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
 
      def ChannelAUpdate(self):
 
-         if self.MeasurementState == 'On'and self.ChannelBState == 'On':
+         if self.MeasurementState == 'On'and self.ChannelAState == 'On':
 
              self.channel = ps.PS5000A_CHANNEL["PS5000A_CHANNEL_A"]
              self.ChACoupling = self.ChannelACouplingComboBox.currentText()
@@ -797,16 +830,20 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
 
 
              self.rangeIndex = self.ChARangeBox.currentIndex()
-             self.chRange = ps.PS5000A_RANGE[self.ChannelVoltageRanges[self.rangeIndex]]
+             self.chARange = ps.PS5000A_RANGE[self.ChannelVoltageRanges[self.rangeIndex]]
              self.ChannelAOffsetValue  = self.ChannelAOffsetSpinBox.value()
 
-             print(chandle, self.channel, 1, self.ChACoupling, self.chRange, 0)
+
              if self.ChannelAState == 'On':
-                 status["setChA"] = ps.ps5000aSetChannel(chandle, self.channel, 1, self.coupling_type, self.chRange, 0)
-                 assert_pico_ok(status["setChA"])
+
+                status["setChA"] = ps.ps5000aSetChannel(chandle, self.channel, 1, self.coupling_type, self.chARange, 0)
+                assert_pico_ok(status["setChA"])
+
+                 
              elif self.ChannelAState == 'Off':
-                 status["setChA"] = ps.ps5000aSetChannel(chandle, self.channel, 0, self.coupling_type, self.chRange, 0)
+                 status["setChA"] = ps.ps5000aSetChannel(chandle, self.channel, 0, self.coupling_type, self.chARange, 0)
                  assert_pico_ok(status["setChA"])
+                 self.chARange = None
              self.TriggerSetup()
 
      def ChannelBUpdate(self):
@@ -819,16 +856,17 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
              elif self.ChBCoupling == 'DC': self.coupling_type = ps.PS5000A_COUPLING["PS5000A_DC"]
 
              self.rangeIndex = self.ChBRangeBox.currentIndex()
-             self.chRange = ps.PS5000A_RANGE[self.ChannelVoltageRanges[self.rangeIndex]]
+             self.chBRange = ps.PS5000A_RANGE[self.ChannelVoltageRanges[self.rangeIndex]]
              self.ChannelBOffsetValue  = self.ChannelBOffsetSpinBox.value()
 
-             print(chandle, self.channel, 1, self.ChBCoupling, self.chRange, 0)
+
              if self.ChannelAState == 'On':
-                 status["setChB"] = ps.ps5000aSetChannel(chandle, self.channel, 1, self.coupling_type, self.chRange, 0)
+                 status["setChB"] = ps.ps5000aSetChannel(chandle, self.channel, 1, self.coupling_type, self.chBRange, 0)
                  assert_pico_ok(status["setChB"])
              elif self.ChannelBState == 'Off':
-                 status["setChB"] = ps.ps5000aSetChannel(chandle, self.channel, 0, self.coupling_type, self.chRange, 0)
+                 status["setChB"] = ps.ps5000aSetChannel(chandle, self.channel, 0, self.coupling_type, self.chBRange, 0)
                  assert_pico_ok(status["setChB"])
+                 self.chBRange = None
              self.TriggerSetup()
 
 
@@ -843,14 +881,16 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
              elif self.ChCCoupling == 'DC': self.coupling_type = ps.PS5000A_COUPLING["PS5000A_DC"]
 
              self.rangeIndex = self.ChCRangeBox.currentIndex()
-             self.chRange = ps.PS5000A_RANGE[self.ChannelVoltageRanges[self.rangeIndex]]
+             self.chCRange = ps.PS5000A_RANGE[self.ChannelVoltageRanges[self.rangeIndex]]
              self.ChannelCOffsetValue  = self.ChannelCOffsetSpinBox.value()
              if self.ChannelAState == 'On':
-                 status["setChC"] = ps.ps5000aSetChannel(chandle, self.channel, 1,self.coupling_type, self.chRange, 0)
+                 status["setChC"] = ps.ps5000aSetChannel(chandle, self.channel, 1,self.coupling_type, self.chCRange, 0)
                  assert_pico_ok(status["setChC"])
              elif self.ChannelCState == 'Off':
-                 status["setChC"] = ps.ps5000aSetChannel(chandle, self.channel, 0,self.coupling_type, self.chRange, 0)
+                 status["setChC"] = ps.ps5000aSetChannel(chandle, self.channel, 0,self.coupling_type, self.chCRange, 0)
                  assert_pico_ok(status["setChC"])
+                 self.chCRange = None
+
              self.TriggerSetup()
 
 
@@ -864,14 +904,15 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
              elif self.ChDCoupling == 'DC': self.coupling_type = ps.PS5000A_COUPLING["PS5000A_DC"]
 
              self.rangeIndex = self.ChDRangeBox.currentIndex()
-             self.chRange = ps.PS5000A_RANGE[self.ChannelVoltageRanges[self.rangeIndex]]
+             self.chDRange = ps.PS5000A_RANGE[self.ChannelVoltageRanges[self.rangeIndex]]
              self.ChannelDOffsetValue  = self.ChannelDOffsetSpinBox.value()
              if self.ChannelDState == 'On':
-                 status["setChD"] = ps.ps5000aSetChannel(chandle, self.channel, 1, self.coupling_type, self.chRange, 0)
+                 status["setChD"] = ps.ps5000aSetChannel(chandle, self.channel, 1, self.coupling_type, self.chDRange, 0)
                  assert_pico_ok(status["setChD"])
              elif self.ChannelDState == 'Off':
-                 status["setChD"] = ps.ps5000aSetChannel(chandle, self.channel, 0, self.coupling_type, self.chRange, 0)
+                 status["setChD"] = ps.ps5000aSetChannel(chandle, self.channel, 0, self.coupling_type, self.chDRange, 0)
                  assert_pico_ok(status["setChD"])
+                 self.chDRange = None
              self.TriggerSetup()
 
 
@@ -1086,7 +1127,7 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
           file , check = QFileDialog.getSaveFileName(None, "QFileDialog getSaveFileName() Demo",
                                                "", "All Files (*);;HDF5 files (*.h5);;")
           if check:
-              print(file)
+              #print(file)
               ch_count = 1
               hf  = h5py.File(file,'w')
               hf.create_dataset('Timings', data = self.data[0,:])
@@ -1244,9 +1285,10 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
 
 
      def ScanGateCheckBoxFunc(self, gate, ScanRegion):
+        
 
          if gate.isChecked() == True:
-              # ScanRegion.setRegion([self.data[0,0],self.data[0,-1]/10])
+              ScanRegion.setBounds([self.data[0,0],self.data[0,-1]])
               self.psScanPlot1.addItem(ScanRegion, ignoreBounds=True)
          else:
               self.psScanPlot1.removeItem(ScanRegion)
@@ -1311,10 +1353,12 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
      def ScanGateData(self, data, ScanRegion, ScanGateCheckBoxState):
 
          gate = ScanRegion.getRegion()
+         #ScanRegion.setBounds(data[0,:]*0.1,data[0,:]*0.2)
+         #print(gate)
 
-         # print(data[0,:])
-         # print(gate[0])
-         print(gate)
+         #print(data[0,:])
+         #print(gate[0])
+         #print(gate)
          idx_down = np.searchsorted(data[0,:],gate[0])
          idx_up = np.searchsorted(data[0,:],gate[1])
 
@@ -1341,16 +1385,24 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
 
      def Data_to_Send(self):
          
+         self.timeIntervalns = ctypes.c_float()
+         self.returnedMaxSamples = ctypes.c_int32()
+         
          self.transfer_parameters = {}
          self.transfer_parameters['NTotSamples'] = self.NTotSamples
          self.transfer_parameters['preTriggerSamples'] = self.preTriggerSamples
          self.transfer_parameters['postTriggerSamples'] = self.postTriggerSamples
          self.transfer_parameters['maxSamples'] = self.maxSamples
          self.transfer_parameters['timebase'] = self.timebase
-         self.transfer_parameters['status'] = status
-         print(self.transfer_parameters)
+         self.transfer_parameters['chandle'] = chandle
+         self.transfer_parameters['timeIntervalns'] = self.timeIntervalns
+         self.transfer_parameters['returnedMaxSamples'] = self.returnedMaxSamples
+         self.transfer_parameters['chARange']=self.chARange
+         self.transfer_parameters['chBRange']=self.chBRange
+         self.transfer_parameters['chCRange']=self.chCRange
+         self.transfer_parameters['chDRange']=self.chDRange
 
-         #return self.transfer_parameters
+
      
 
          
@@ -1381,14 +1433,33 @@ class psMeasureThread1(QObject):
          self._timer.start(20)
 
      def DataFrom_GUI(self,data):
-         print(data)
+         #print(data)
          
          self.NTotSamples = data['NTotSamples'] 
          self.preTriggerSamples = data['preTriggerSamples'] 
          self.postTriggerSamples = data['postTriggerSamples'] 
          self.maxSamples = data['maxSamples']
          self.timebase = data['timebase'] 
-         self.status['status'] = data['status']
+         self.chandle = data['chandle']
+         self.timeIntervalns = data['timeIntervalns'] 
+         self.returnedMaxSamples = data['returnedMaxSamples']
+         self.chARange = data['chARange']
+         self.chBRange = data['chBRange']
+         self.chCRange = data['chCRange']
+         self.chDRange = data['chDRange']
+         print(self.chARange,self.chCRange,self.chBRange,self.chDRange)
+
+
+        #  self.status["getTimebase2"] = ps.ps5000aGetTimebase2(chandle, self.timebase, self.maxSamples, ctypes.byref(self.timeIntervalns), ctypes.byref(self.returnedMaxSamples), 0)
+        #  assert_pico_ok(self.status["getTimebase2"])
+        #  self.ready = ctypes.c_int16(0)
+        #  self.check = ctypes.c_int16(0)
+
+        #  self.bufferAMax = (ctypes.c_int16 * self.maxSamples)()
+        #  self.bufferAMin = (ctypes.c_int16 * self.maxSamples)() # used for downsampling which isn't in the scope of this example
+        #  self.bufferBMax = (ctypes.c_int16 * self.maxSamples)()
+        #  self.bufferBMin = (ctypes.c_int16 * self.maxSamples)() # used for downsampling which isn't in the scope of this example
+
          
 
 
@@ -1404,11 +1475,11 @@ class psMeasureThread1(QObject):
          #self.postTriggerSamples = self.NTotSamples - self.preTriggerSamples
          #self.maxSamples = self.preTriggerSamples + self.postTriggerSamples
          #self.timebase = 5
-         self.status["runBlock"] = ps.ps5000aRunBlock(chandle, self.preTriggerSamples, self.postTriggerSamples, self.timebase, None, 0, None, None)
-         assert_pico_ok(self.status["runBlock"])
+         #self.status["runBlock"] = ps.ps5000aRunBlock(chandle, self.preTriggerSamples, self.postTriggerSamples, self.timebase, None, 0, None, None)
+         #assert_pico_ok(self.status["runBlock"])
 
-         self.timeIntervalns = ctypes.c_float()
-         self.returnedMaxSamples = ctypes.c_int32()
+         #self.timeIntervalns = ctypes.c_float()
+         #self.returnedMaxSamples = ctypes.c_int32()
          self.status["getTimebase2"] = ps.ps5000aGetTimebase2(chandle, self.timebase, self.maxSamples, ctypes.byref(self.timeIntervalns), ctypes.byref(self.returnedMaxSamples), 0)
          assert_pico_ok(self.status["getTimebase2"])
          self.ready = ctypes.c_int16(0)
@@ -1451,6 +1522,7 @@ class psMeasureThread1(QObject):
              self.status["isReady"] = ps.ps5000aIsReady(chandle, ctypes.byref(self.ready))
          self.status["getValues"] = ps.ps5000aGetValues(chandle, 0, ctypes.byref(self.cmaxSamples), 0, 0, 0, ctypes.byref(self.overflow))
          assert_pico_ok(self.status["getValues"])
+         
 
          self.adc2mVChAMax =  adc2mV(self.bufferAMax, self.chARange, self.maxADC)
          self.adc2mVChBMax =  adc2mV(self.bufferBMax, self.chBRange, self.maxADC)
