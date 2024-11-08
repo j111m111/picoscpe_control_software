@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1592</width>
-    <height>861</height>
+    <height>949</height>
    </rect>
   </property>
   <property name="font">
@@ -81,7 +81,40 @@
               <enum>QFrame::Raised</enum>
              </property>
              <layout class="QGridLayout" name="gridLayout_10">
-              <item row="2" column="0">
+              <item row="9" column="0">
+               <widget class="QCheckBox" name="ScanGatecheckBox7">
+                <property name="font">
+                 <font>
+                  <pointsize>4</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="0">
+               <widget class="QCheckBox" name="ScanGatecheckBox2">
+                <property name="font">
+                 <font>
+                  <pointsize>4</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
+              <item row="8" column="1" colspan="2">
+               <widget class="QComboBox" name="ScanGatecomboBox6">
+                <property name="font">
+                 <font>
+                  <pointsize>6</pointsize>
+                 </font>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
                <widget class="QCheckBox" name="ScanGatecheckBox1">
                 <property name="font">
                  <font>
@@ -89,11 +122,11 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>Gate 1</string>
+                 <string/>
                 </property>
                </widget>
               </item>
-              <item row="2" column="1" colspan="2">
+              <item row="3" column="1" colspan="2">
                <widget class="QComboBox" name="ScanGatecomboBox1">
                 <property name="font">
                  <font>
@@ -104,24 +137,53 @@
                 </property>
                </widget>
               </item>
-              <item row="3" column="0">
-               <widget class="QCheckBox" name="ScanGatecheckBox4">
+              <item row="6" column="1" colspan="2">
+               <widget class="QComboBox" name="ScanGatecomboBox4">
+                <property name="font">
+                 <font>
+                  <pointsize>6</pointsize>
+                 </font>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="0">
+               <widget class="QCheckBox" name="ScanGatecheckBox3">
                 <property name="font">
                  <font>
                   <pointsize>4</pointsize>
                  </font>
                 </property>
                 <property name="text">
-                 <string>Gate 1</string>
+                 <string/>
                 </property>
                </widget>
               </item>
-              <item row="3" column="1" colspan="2">
-               <widget class="QComboBox" name="ScanGatecomboBox2">
+              <item row="9" column="1" colspan="2">
+               <widget class="QComboBox" name="ScanGatecomboBox7">
                 <property name="font">
                  <font>
                   <pointsize>6</pointsize>
                  </font>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QSpinBox" name="NAvgScanGatespinBox">
+                <property name="font">
+                 <font>
+                  <pointsize>8</pointsize>
+                  <weight>50</weight>
+                  <bold>false</bold>
+                 </font>
+                </property>
+                <property name="minimum">
+                 <number>5</number>
+                </property>
+                <property name="maximum">
+                 <number>10000</number>
+                </property>
+                <property name="singleStep">
+                 <number>1</number>
                 </property>
                </widget>
               </item>
@@ -140,60 +202,6 @@
                </widget>
               </item>
               <item row="8" column="0">
-               <widget class="QCheckBox" name="ScanGatecheckBox7">
-                <property name="font">
-                 <font>
-                  <pointsize>4</pointsize>
-                 </font>
-                </property>
-                <property name="text">
-                 <string>Gate 1</string>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="0">
-               <widget class="QCheckBox" name="ScanGatecheckBox3">
-                <property name="font">
-                 <font>
-                  <pointsize>4</pointsize>
-                 </font>
-                </property>
-                <property name="text">
-                 <string>Gate 1</string>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="0">
-               <widget class="QCheckBox" name="ScanGatecheckBox2">
-                <property name="font">
-                 <font>
-                  <pointsize>4</pointsize>
-                 </font>
-                </property>
-                <property name="text">
-                 <string>Gate 1</string>
-                </property>
-               </widget>
-              </item>
-              <item row="6" column="1" colspan="2">
-               <widget class="QComboBox" name="ScanGatecomboBox5">
-                <property name="font">
-                 <font>
-                  <pointsize>6</pointsize>
-                 </font>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="1" colspan="2">
-               <widget class="QComboBox" name="ScanGatecomboBox3">
-                <property name="font">
-                 <font>
-                  <pointsize>6</pointsize>
-                 </font>
-                </property>
-               </widget>
-              </item>
-              <item row="7" column="0">
                <widget class="QCheckBox" name="ScanGatecheckBox5">
                 <property name="font">
                  <font>
@@ -201,20 +209,11 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>Gate 1</string>
+                 <string/>
                 </property>
                </widget>
               </item>
-              <item row="7" column="1" colspan="2">
-               <widget class="QComboBox" name="ScanGatecomboBox6">
-                <property name="font">
-                 <font>
-                  <pointsize>6</pointsize>
-                 </font>
-                </property>
-               </widget>
-              </item>
-              <item row="6" column="0">
+              <item row="7" column="0">
                <widget class="QCheckBox" name="ScanGatecheckBox6">
                 <property name="font">
                  <font>
@@ -222,40 +221,11 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>Gate 1</string>
+                 <string/>
                 </property>
                </widget>
               </item>
-              <item row="8" column="1" colspan="2">
-               <widget class="QComboBox" name="ScanGatecomboBox7">
-                <property name="font">
-                 <font>
-                  <pointsize>6</pointsize>
-                 </font>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="1">
-               <widget class="QSpinBox" name="NAvgScanGatespinBox">
-                <property name="font">
-                 <font>
-                  <pointsize>8</pointsize>
-                  <weight>50</weight>
-                  <bold>false</bold>
-                 </font>
-                </property>
-                <property name="minimum">
-                 <number>1</number>
-                </property>
-                <property name="maximum">
-                 <number>10000</number>
-                </property>
-                <property name="singleStep">
-                 <number>5</number>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="0">
+              <item row="2" column="0">
                <widget class="QLabel" name="label_2">
                 <property name="font">
                  <font>
@@ -267,12 +237,76 @@
                 </property>
                </widget>
               </item>
-              <item row="5" column="1" colspan="2">
-               <widget class="QComboBox" name="ScanGatecomboBox4">
+              <item row="4" column="0">
+               <widget class="QCheckBox" name="ScanGatecheckBox4">
+                <property name="font">
+                 <font>
+                  <pointsize>4</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="1" colspan="2">
+               <widget class="QComboBox" name="ScanGatecomboBox2">
                 <property name="font">
                  <font>
                   <pointsize>6</pointsize>
                  </font>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="1" colspan="2">
+               <widget class="QComboBox" name="ScanGatecomboBox3">
+                <property name="font">
+                 <font>
+                  <pointsize>6</pointsize>
+                 </font>
+                </property>
+               </widget>
+              </item>
+              <item row="7" column="1" colspan="2">
+               <widget class="QComboBox" name="ScanGatecomboBox5">
+                <property name="font">
+                 <font>
+                  <pointsize>6</pointsize>
+                 </font>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QSpinBox" name="NrDataPtsSpinBox">
+                <property name="font">
+                 <font>
+                  <pointsize>8</pointsize>
+                  <weight>50</weight>
+                  <bold>false</bold>
+                 </font>
+                </property>
+                <property name="maximum">
+                 <number>1000000</number>
+                </property>
+                <property name="singleStep">
+                 <number>1000</number>
+                </property>
+                <property name="value">
+                 <number>20000</number>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_9">
+                <property name="font">
+                 <font>
+                  <pointsize>6</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>#Samp</string>
                 </property>
                </widget>
               </item>
@@ -708,7 +742,7 @@
               <number>1000000</number>
              </property>
              <property name="singleStep">
-              <number>1000</number>
+              <number>100</number>
              </property>
              <property name="value">
               <number>5000</number>

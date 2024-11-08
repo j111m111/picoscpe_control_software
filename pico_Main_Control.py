@@ -3,7 +3,7 @@ import numpy as np
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QFileDialog
-from PyQt5.QtCore import QThread, pyqtSignal, QTimer, QObject
+from PyQt5.QtCore import QThread, pyqtSignal, QTimer, QObject,pyqtSlot
 import sys
 import picoscope_main_gui_101022
 from colorama import Fore, Style
@@ -1413,12 +1413,14 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
 
 
 class psMeasureThread1(QObject):
-
+     def __init__(self):
+        super().__init__()
+        self.LoopOn = 'Off'   
 
 
      data_for_transfer = pyqtSignal(object)
 
-
+    
 
      def StartTimer(self):
 
@@ -1431,10 +1433,10 @@ class psMeasureThread1(QObject):
          self._timer = QTimer(self)
          self._timer.timeout.connect(self.LoopFunc)
          self._timer.start(20)
-
+     @pyqtSlot(dict)
      def DataFrom_GUI(self,data):
          #print(data)
-         
+         self.LoopOn = 'On'
          self.NTotSamples = data['NTotSamples'] 
          self.preTriggerSamples = data['preTriggerSamples'] 
          self.postTriggerSamples = data['postTriggerSamples'] 
@@ -1450,8 +1452,8 @@ class psMeasureThread1(QObject):
          print(self.chARange,self.chCRange,self.chBRange,self.chDRange)
 
 
-        #  self.status["getTimebase2"] = ps.ps5000aGetTimebase2(chandle, self.timebase, self.maxSamples, ctypes.byref(self.timeIntervalns), ctypes.byref(self.returnedMaxSamples), 0)
-        #  assert_pico_ok(self.status["getTimebase2"])
+         self.status["getTimebase2"] = ps.ps5000aGetTimebase2(chandle, self.timebase, self.maxSamples, ctypes.byref(self.timeIntervalns), ctypes.byref(self.returnedMaxSamples), 0)
+         assert_pico_ok(self.status["getTimebase2"])
         #  self.ready = ctypes.c_int16(0)
         #  self.check = ctypes.c_int16(0)
 
@@ -1464,71 +1466,72 @@ class psMeasureThread1(QObject):
 
 
      def LoopFunc(self):
-         # self.data = np.zeros((2,1000))
-         # self.data[0,:] = np.linspace(0,2*np.pi,1000)
-         # self.data[1,:] = np.sin(10*self.data[0,:]+np.random.uniform(0,2*np.pi))
-         #time.sleep(0.05)
-         # self.data_for_transfer.emit(self.data)
+         if self.LoopOn == 'On':
+            # self.data = np.zeros((2,1000))
+            # self.data[0,:] = np.linspace(0,2*np.pi,1000)
+            # self.data[1,:] = np.sin(10*self.data[0,:]+np.random.uniform(0,2*np.pi))
+            #time.sleep(0.05)
+            # self.data_for_transfer.emit(self.data)
 
-         #self.NTotSamples = 4000
-         #self.preTriggerSamples = 0*math.floor(self.NTotSamples/10)
-         #self.postTriggerSamples = self.NTotSamples - self.preTriggerSamples
-         #self.maxSamples = self.preTriggerSamples + self.postTriggerSamples
-         #self.timebase = 5
-         #self.status["runBlock"] = ps.ps5000aRunBlock(chandle, self.preTriggerSamples, self.postTriggerSamples, self.timebase, None, 0, None, None)
-         #assert_pico_ok(self.status["runBlock"])
+            #self.NTotSamples = 4000
+            #self.preTriggerSamples = 0*math.floor(self.NTotSamples/10)
+            #self.postTriggerSamples = self.NTotSamples - self.preTriggerSamples
+            #self.maxSamples = self.preTriggerSamples + self.postTriggerSamples
+            #self.timebase = 5
+            #self.status["runBlock"] = ps.ps5000aRunBlock(chandle, self.preTriggerSamples, self.postTriggerSamples, self.timebase, None, 0, None, None)
+            #assert_pico_ok(self.status["runBlock"])
 
-         #self.timeIntervalns = ctypes.c_float()
-         #self.returnedMaxSamples = ctypes.c_int32()
-         self.status["getTimebase2"] = ps.ps5000aGetTimebase2(chandle, self.timebase, self.maxSamples, ctypes.byref(self.timeIntervalns), ctypes.byref(self.returnedMaxSamples), 0)
-         assert_pico_ok(self.status["getTimebase2"])
-         self.ready = ctypes.c_int16(0)
-         self.check = ctypes.c_int16(0)
+            #self.timeIntervalns = ctypes.c_float()
+            #self.returnedMaxSamples = ctypes.c_int32()
+            # self.status["getTimebase2"] = ps.ps5000aGetTimebase2(chandle, self.timebase, self.maxSamples, ctypes.byref(self.timeIntervalns), ctypes.byref(self.returnedMaxSamples), 0)
+            # assert_pico_ok(self.status["getTimebase2"])
+            self.ready = ctypes.c_int16(0)
+            self.check = ctypes.c_int16(0)
 
-         self.bufferAMax = (ctypes.c_int16 * self.maxSamples)()
-         self.bufferAMin = (ctypes.c_int16 * self.maxSamples)() # used for downsampling which isn't in the scope of this example
-         self.bufferBMax = (ctypes.c_int16 * self.maxSamples)()
-         self.bufferBMin = (ctypes.c_int16 * self.maxSamples)() # used for downsampling which isn't in the scope of this example
+            self.bufferAMax = (ctypes.c_int16 * self.maxSamples)()
+            self.bufferAMin = (ctypes.c_int16 * self.maxSamples)() # used for downsampling which isn't in the scope of this example
+            self.bufferBMax = (ctypes.c_int16 * self.maxSamples)()
+            self.bufferBMin = (ctypes.c_int16 * self.maxSamples)() # used for downsampling which isn't in the scope of this example
 
-         self.status["runBlock"] = ps.ps5000aRunBlock(chandle, self.preTriggerSamples, self.postTriggerSamples, self.timebase, None, 0, None, None)
-         assert_pico_ok(self.status["runBlock"])
-
-
-
-
-     # Create time data
+            self.status["runBlock"] = ps.ps5000aRunBlock(chandle, self.preTriggerSamples, self.postTriggerSamples, self.timebase, None, 0, None, None)
+            assert_pico_ok(self.status["runBlock"])
 
 
-         self.maxADC = ctypes.c_int16()
-         self.status["maximumValue"] = ps.ps5000aMaximumValue(chandle, ctypes.byref(self.maxADC))
-         assert_pico_ok(self.status["maximumValue"])
 
-         self.chARange = ps.PS5000A_RANGE["PS5000A_20V"]
-         self.chBRange = ps.PS5000A_RANGE["PS5000A_20V"]
-         self.source = ps.PS5000A_CHANNEL["PS5000A_CHANNEL_A"]
-         self.status["setDataBuffersA"] = ps.ps5000aSetDataBuffers(chandle, self.source, ctypes.byref(self.bufferAMax), ctypes.byref(self.bufferAMin), self.maxSamples, 0, 0)
-         assert_pico_ok(self.status["setDataBuffersA"])
 
-         self.source = ps.PS5000A_CHANNEL["PS5000A_CHANNEL_B"]
-         self.status["setDataBuffersB"] = ps.ps5000aSetDataBuffers(chandle, self.source, ctypes.byref(self.bufferBMax), ctypes.byref(self.bufferBMin), self.maxSamples, 0, 0)
-         assert_pico_ok(self.status["setDataBuffersB"])
+        # Create time data
 
-         self.overflow = ctypes.c_int16()
-         # create converted type maxSamples
-         self.cmaxSamples = ctypes.c_int32(self.maxSamples)
-         self.time = np.linspace(0, (self.cmaxSamples.value - 1) * self.timeIntervalns.value, self.cmaxSamples.value)*ns
 
-         while self.ready.value == self.check.value:
-             self.status["isReady"] = ps.ps5000aIsReady(chandle, ctypes.byref(self.ready))
-         self.status["getValues"] = ps.ps5000aGetValues(chandle, 0, ctypes.byref(self.cmaxSamples), 0, 0, 0, ctypes.byref(self.overflow))
-         assert_pico_ok(self.status["getValues"])
-         
+            self.maxADC = ctypes.c_int16()
+            self.status["maximumValue"] = ps.ps5000aMaximumValue(chandle, ctypes.byref(self.maxADC))
+            assert_pico_ok(self.status["maximumValue"])
 
-         self.adc2mVChAMax =  adc2mV(self.bufferAMax, self.chARange, self.maxADC)
-         self.adc2mVChBMax =  adc2mV(self.bufferBMax, self.chBRange, self.maxADC)
-         # time.sleep(0.1)
-         self.data = np.vstack((self.time, self.adc2mVChAMax, self.adc2mVChBMax))
-         self.data_for_transfer.emit(self.data)
+            self.chARange = ps.PS5000A_RANGE["PS5000A_20V"]
+            self.chBRange = ps.PS5000A_RANGE["PS5000A_20V"]
+            self.source = ps.PS5000A_CHANNEL["PS5000A_CHANNEL_A"]
+            self.status["setDataBuffersA"] = ps.ps5000aSetDataBuffers(chandle, self.source, ctypes.byref(self.bufferAMax), ctypes.byref(self.bufferAMin), self.maxSamples, 0, 0)
+            assert_pico_ok(self.status["setDataBuffersA"])
+
+            self.source = ps.PS5000A_CHANNEL["PS5000A_CHANNEL_B"]
+            self.status["setDataBuffersB"] = ps.ps5000aSetDataBuffers(chandle, self.source, ctypes.byref(self.bufferBMax), ctypes.byref(self.bufferBMin), self.maxSamples, 0, 0)
+            assert_pico_ok(self.status["setDataBuffersB"])
+
+            self.overflow = ctypes.c_int16()
+            # create converted type maxSamples
+            self.cmaxSamples = ctypes.c_int32(self.maxSamples)
+            self.time = np.linspace(0, (self.cmaxSamples.value - 1) * self.timeIntervalns.value, self.cmaxSamples.value)*ns
+
+            while self.ready.value == self.check.value:
+                self.status["isReady"] = ps.ps5000aIsReady(chandle, ctypes.byref(self.ready))
+            self.status["getValues"] = ps.ps5000aGetValues(chandle, 0, ctypes.byref(self.cmaxSamples), 0, 0, 0, ctypes.byref(self.overflow))
+            assert_pico_ok(self.status["getValues"])
+            
+
+            self.adc2mVChAMax =  adc2mV(self.bufferAMax, self.chARange, self.maxADC)
+            self.adc2mVChBMax =  adc2mV(self.bufferBMax, self.chBRange, self.maxADC)
+            # time.sleep(0.1)
+            self.data = np.vstack((self.time, self.adc2mVChAMax, self.adc2mVChBMax))
+            self.data_for_transfer.emit(self.data)
 
      
 
