@@ -37,6 +37,9 @@ def make_dpi_aware():
 
 make_dpi_aware()
 
+def xnor(a, b):
+    return a == b
+
 
 chandle = ctypes.c_int16()
 status = {}
@@ -427,6 +430,22 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
 
 
 
+        '''Fake scan'''
+        self.FakeScanStatus = False
+        self.CurrentFakeScanStatus = False
+        self.FakeScanNr = self.FakeScanspinBox.value()
+        self.FakeScanOnButton.clicked.connect(self.toggle_fake_scan)
+        self.StartFakeScanButton.clicked.connect(self.toggle_currentfake_scan)
+        self.FakeScanCounter = 0
+        
+
+
+        
+
+
+
+
+
 
     
         
@@ -442,6 +461,28 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
         self.ready = ctypes.c_int16(0)
         self.check = ctypes.c_int16(0)
         self.overflow = ctypes.c_int16()
+
+     def toggle_fake_scan(self):
+                self.FakeScanNr = self.FakeScanspinBox.value()
+                # Toggle FakeScanStatus between 'On' and 'Off'
+                if self.FakeScanStatus == False:
+                    self.FakeScanStatus = True
+                    self.FakeScanOnButton.setText("Scanning")
+                else:
+                    self.FakeScanStatus = False
+                    self.FakeScanOnButton.setText("On")
+
+     def toggle_currentfake_scan(self):
+            self.FakeScanNr = self.FakeScanspinBox.value()
+            self.FakeScanCounter = 0
+            if self.FakeScanStatus == True:
+                # Toggle FakeScanStatus between 'On' and 'Off'
+                if self.CurrentFakeScanStatus == False:
+                    self.CurrenFakeScanStatus = True
+                    self.StartFakeScanButton.setText("Wait")
+                else:
+                    self.CurrenFakeScanStatus = False
+                    self.StartFakeScanButton.setText("Start")
 
 
      def SetupScope(self):
@@ -984,7 +1025,11 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
              self.save_count+=1
 
 
-         if self.psScanActive == 'On':
+         if self.psScanActive == 'On' and xnor(self.FakeScanStatus,self.CurrentFakeScanStatus):
+             self.FakeScanCounter+=1
+             if self.FakeScanCounter>=self.FakeScanNr*self.ScanNAvg : 
+                 self.CurrentFakeScanStatus = False
+                 self.toggle_currentfake_scan()
              0==0
 
              if self.psScanCount == 0:
@@ -1401,6 +1446,8 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
          self.transfer_parameters['chBRange']=self.chBRange
          self.transfer_parameters['chCRange']=self.chCRange
          self.transfer_parameters['chDRange']=self.chDRange
+
+
 
 
      
