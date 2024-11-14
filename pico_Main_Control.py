@@ -4,9 +4,11 @@ import numpy as np
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtCore import QThread, pyqtSignal, QTimer, QObject,pyqtSlot
+from PyQt5.QtCore import QModelIndex  # Correct import for QModelIndex
 import sys
 import picoscope_main_gui_101022
 from colorama import Fore, Style
+from PyQt5.QtGui import QStandardItem, QStandardItemModel
 
 
 from numba import jit,njit,float32,int32
@@ -16,6 +18,7 @@ import random
 
 import h5py
 import os
+import csv
 
 
 
@@ -437,7 +440,25 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
         self.FakeScanOnButton.clicked.connect(self.toggle_fake_scan)
         self.StartFakeScanButton.clicked.connect(self.toggle_currentfake_scan)
         self.FakeScanCounter = 0
-        
+        self.initialize_table()
+        font = self.FakeScanTable.font()
+
+        # Set the font size to something smaller (e.g., 8)
+        font.setPointSize(8)
+        header_font = self.FakeScanTable.horizontalHeader().font()
+
+        # Set the font size for the headers
+        header_font.setPointSize(8)  # Set font size to 8 for headers
+
+        # Apply the new font to the headers
+        self.FakeScanTable.horizontalHeader().setFont(header_font)
+
+        # Apply the new font to the QTableView
+        self.FakeScanTable.setFont(font)
+        self.FakeScanTable.model().dataChanged.connect(self.check_and_add_row)
+        self.FakeScanTable.resizeColumnsToContents()
+
+        self.SaveFakeDataButton.clicked.connect(self.save_table_to_csv)
 
 
         
@@ -463,6 +484,10 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
         self.overflow = ctypes.c_int16()
 
      def toggle_fake_scan(self):
+
+                self.ScanGateAvgDataTotN = []
+                self.ScanGateAvgDataTot1 = []
+                self.ScanGateAvgDataTotError1 = []
                 self.FakeScanNr = self.FakeScanspinBox.value()
                 # Toggle FakeScanStatus between 'On' and 'Off'
                 if self.FakeScanStatus == False:
@@ -470,19 +495,22 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
                     self.FakeScanOnButton.setText("Scanning")
                 else:
                     self.FakeScanStatus = False
-                    self.FakeScanOnButton.setText("On")
+                    self.FakeScanOnButton.setText("Start")
 
      def toggle_currentfake_scan(self):
             self.FakeScanNr = self.FakeScanspinBox.value()
             self.FakeScanCounter = 0
+            #print(self.FakeScanStatus,self.CurrentFakeScanStatus)
             if self.FakeScanStatus == True:
                 # Toggle FakeScanStatus between 'On' and 'Off'
                 if self.CurrentFakeScanStatus == False:
-                    self.CurrenFakeScanStatus = True
+                    self.CurrentFakeScanStatus = True
                     self.StartFakeScanButton.setText("Wait")
+                    #print(self.FakeScanStatus,self.CurrentFakeScanStatus)
                 else:
-                    self.CurrenFakeScanStatus = False
+                    self.CurrentFakeScanStatus = False
                     self.StartFakeScanButton.setText("Start")
+                    self.FakeScanCounter=0
 
 
      def SetupScope(self):
@@ -1024,11 +1052,12 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
              self.ContinuousSaveData()
              self.save_count+=1
 
-
-         if self.psScanActive == 'On' and xnor(self.FakeScanStatus,self.CurrentFakeScanStatus):
+         print (self.psScanActive == 'On' and xnor(self.FakeScanStatus,self.CurrentFakeScanStatus ),self.psScanActive,self.FakeScanStatus,self.CurrentFakeScanStatus,self.FakeScanCounter)
+         if self.psScanActive == 'On'and xnor(self.FakeScanStatus,self.CurrentFakeScanStatus):
              self.FakeScanCounter+=1
              if self.FakeScanCounter>=self.FakeScanNr*self.ScanNAvg : 
-                 self.CurrentFakeScanStatus = False
+                 #self.CurrentFakeScanStatus = False
+                 
                  self.toggle_currentfake_scan()
              0==0
 
@@ -1447,8 +1476,56 @@ class GuiThread(QtWidgets.QMainWindow, picoscope_main_gui_101022.Ui_MainWindow):
          self.transfer_parameters['chCRange']=self.chCRange
          self.transfer_parameters['chDRange']=self.chDRange
 
+     # Table setup functions
+     def initialize_table(self):
+        # Initialize the QTableWidget
+        self.FakeScanTable.setRowCount(4)  # Example: 3 rows
+        self.FakeScanTable.setColumnCount(4)  # Example: 3 columns
+        
+        # Set the headers for the table
+        self.FakeScanTable.setHorizontalHeaderLabels(['p1', 'p2', 'p3','p4'])
 
+        # Populate the table with some initial data
+        # for row in range(3):
+        #     for col in range(3):
+        #         item = QtWidgets.QTableWidgetItem(f"Item {row+1}-{col+1}")
+        #         self.FakeScanTable.setItem(row, col, item)
 
+     def check_and_add_row(self, item):
+        # Get the row of the edited item
+        row = item.row()
+
+        # Check if the edited row is the last row
+        if row == self.FakeScanTable.rowCount() - 1:
+            # If it is the last row, add a new row to the table
+            self.add_row()
+
+     def add_row(self):
+        # Add a new row at the end of the table
+        row_position = self.FakeScanTable.rowCount()
+        self.FakeScanTable.insertRow(row_position)
+
+     def save_table_to_csv(self):
+        # Open a file dialog to choose the save location and file name
+        options = QtWidgets.QFileDialog.Options()
+        file_name, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Table as CSV", "", "CSV Files (*.csv);;All Files (*)", options=options)
+
+        if file_name:
+            # Open the file in write mode
+            with open(file_name, mode='w', newline='', encoding='utf-8') as file:
+                writer = csv.writer(file)
+
+                # Write the headers to the CSV file
+                headers = [self.FakeScanTable.horizontalHeaderItem(col).text() for col in range(self.FakeScanTable.columnCount())]
+                writer.writerow(headers)
+
+                # Write the data from the table to the CSV file
+                for row in range(self.FakeScanTable.rowCount()):
+                    row_data = []
+                    for col in range(self.FakeScanTable.columnCount()):
+                        item = self.FakeScanTable.item(row, col)
+                        row_data.append(item.text() if item else '')  # Handle empty cells
+                    writer.writerow(row_data)
 
      
 
